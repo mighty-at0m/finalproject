@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Attendance - Mark Attendance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            color: white;
+        }
+        .navbar {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 { color: #e94560; font-size: 20px; }
+        .navbar a { color: #e94560; text-decoration: none; font-size: 13px; }
+        .content {
+            padding: 30px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .card h3 { font-size: 16px; margin-bottom: 15px; color: rgba(255,255,255,0.8); }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+        }
+        .status-row:last-child { border-bottom: none; }
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge.checking { background: rgba(255,165,0,0.2); color: orange; }
+        .badge.valid { background: rgba(46,213,115,0.2); color: #2ed573; }
+        .badge.invalid { background: rgba(233,69,96,0.2); color: #e94560; }
+        .pattern-box { text-align: center; }
+        .pattern-instruction {
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+        .pattern-instruction span {
+            color: #e94560;
+            font-weight: 700;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+        canvas {
+            border: 2px dashed rgba(233,69,96,0.5);
+            border-radius: 15px;
+            cursor: crosshair;
+            background: rgba(255,255,255,0.03);
+            touch-action: none;
+        }
+        .canvas-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-clear {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .btn-submit {
+            background: #e94560;
+            color: white;
+        }
+        .btn-submit:hover { background: #c73652; }
+        .btn-submit:disabled {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.3);
+            cursor: not-allowed;
+        }
+        .result {
+            display: none;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        .result.success { background: rgba(46,213,115,0.2); color: #2ed573; border: 1px solid #2ed573; }
+        .result.error { background: rgba(233,69,96,0.2); color: #e94560; border: 1px solid #e94560; }
+        .course-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 15px;
+        }
+        .course-select option { background: #1a1a2e; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🎓 Smart Attendance</h1>
+        <a href="/dashboard">← Back to Dashboard</a>
+    </div>
+
+    <div class="content">
+        <!-- Validation Status -->
+        <div class="card">
+            <h3>🔍 Validation Status</h3>
+            <div class="status-row">
+                <span>📍 Location (Geofence)</span>
+                <span class="badge checking" id="location-badge">Checking...</span>
+            </div>
+            <div class="status-row">
+                <span>📱 Device Recognition</span>
+                <span class="badge checking" id="device-badge">Checking...</span>
+            </div>
+            <div class="status-row">
+                <span>✏️ Pattern</span>
+                <span class="badge checking" id="pattern-badge">Pending</span>
+            </div>
+        </div>
+
+        <!-- Pattern Drawing -->
+        <div class="card">
+            <h3>✏️ Draw Your Pattern</h3>
+            <div class="pattern-box">
+                <p class="pattern-instruction">
+                    Draw a: <span>{{ student.assigned_pattern }}</span>
+                </p>
+                <select class="course-select" id="course-select">
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Physics">Physics</option>
+                    <option value="English">English</option>
+                    <option value="General Studies">General Studies</option>
+                </select>
+                <canvas id="patternCanvas" width="400" height="300"></canvas>
+                <div class="canvas-btns">
+                    <button class="btn btn-clear" onclick="clearCanvas()">🗑️ Clear</button>
+                    <button class="btn btn-submit" id="submitBtn" onclick="submitAttendance()">✅ Submit Attendance</button>
+                </div>
+                <div class="result" id="result"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('patternCanvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let hasDrawn = false;
+    let paths = [];
+    let currentPath = [];
+
+    ctx.strokeStyle = '#e94560';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        if (e.touches) return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    canvas.addEventListener('mousedown', e => { drawing = true; currentPath = [getPos(e)]; });
+    canvas.addEventListener('mousemove', e => {
+        if (!drawing) return;
+        const pos = getPos(e);
+        currentPath.push(pos);
+        ctx.beginPath();
+        ctx.moveTo(currentPath[currentPath.length-2].x, currentPath[currentPath.length-2].y);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        hasDrawn = true;
+    });
+    canvas.addEventListener('mouseup', () => { drawing = false; paths.push(currentPath); });
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; currentPath = [getPos(e)]; });
+    canvas.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (!drawing) return;
+        const pos = getPos(e);
+        currentPath.push(pos);
+        ctx.beginPath();
+        ctx.moveTo(currentPath[currentPath.length-2].x, currentPath[currentPath.length-2].y);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        hasDrawn = true;
+    });
+    canvas.addEventListener('touchend', () => { drawing = false; paths.push(currentPath); });
+
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        paths = []; hasDrawn = false;
+        document.getElementById('pattern-badge').className = 'badge checking';
+        document.getElementById('pattern-badge').textContent = 'Pending';
+    }
+
+    function getDeviceHash() {
+        const data = navigator.userAgent + screen.width + screen.height + navigator.language + navigator.platform;
+        let hash = 0;
+        for (let i = 0; i < data.length; i++) { hash = ((hash << 5) - hash) + data.charCodeAt(i); hash |= 0; }
+        return Math.abs(hash).toString(16);
+    }
+
+    let locationValid = false;
+    let assignedPattern = '{{ student.assigned_pattern }}';
+
+    function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const dLat = (lat2-lat1) * Math.PI/180;
+        const dLon = (lon2-lon1) * Math.PI/180;
+        const a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+                  Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+                  Math.sin(dLon/2)*Math.sin(dLon/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function validateDrawing(pattern) {
+        if (!hasDrawn || paths.length === 0) return false;
+        let allPoints = [];
+        paths.forEach(p => allPoints = allPoints.concat(p));
+        if (allPoints.length < 10) return false;
+        const xs = allPoints.map(p => p.x);
+        const ys = allPoints.map(p => p.y);
+        const width = Math.max(...xs) - Math.min(...xs);
+        const height = Math.max(...ys) - Math.min(...ys);
+        const aspectRatio = width / (height || 1);
+        const start = allPoints[0];
+        const end = allPoints[allPoints.length-1];
+        const closedDist = Math.sqrt(Math.pow(end.x-start.x,2) + Math.pow(end.y-start.y,2));
+        const isClosed = closedDist < 60;
+
+        switch(pattern.toLowerCase()) {
+            case 'circle': return isClosed && aspectRatio > 0.5 && aspectRatio < 2.0 && allPoints.length > 30;
+            case 'triangle': return isClosed && allPoints.length > 15 && allPoints.length < 200;
+            case 'square': return isClosed && aspectRatio > 0.6 && aspectRatio < 1.6;
+            case 'zigzag': return !isClosed && width > 100 && allPoints.length > 20;
+            case 'star': return isClosed && allPoints.length > 40;
+            default: return hasDrawn;
+        }
+    }
+
+    function loadSession() {
+        fetch('/get_session')
+        .then(r => r.json())
+        .then(data => {
+            const locBadge = document.getElementById('location-badge');
+            if (!data.success || !data.lat || !data.lng) {
+                locBadge.className = 'badge invalid';
+                locBadge.textContent = '❌ No Active Session';
+                document.querySelector('.pattern-instruction span').textContent = 'Waiting for lecturer...';
+                return;
+            }
+
+            assignedPattern = data.pattern;
+            document.querySelector('.pattern-instruction span').textContent = data.pattern;
+
+            navigator.geolocation.getCurrentPosition(pos => {
+                const dist = getDistance(pos.coords.latitude, pos.coords.longitude, data.lat, data.lng);
+                locationValid = dist <= 50;
+                locBadge.className = 'badge ' + (locationValid ? 'valid' : 'invalid');
+                locBadge.textContent = locationValid
+                    ? '✅ Within Range'
+                    : `❌ Out of Range (${Math.round(dist)}m away)`;
+            }, () => {
+                locBadge.className = 'badge invalid';
+                locBadge.textContent = '❌ Location Denied';
+            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+        });
+    }
+
+    loadSession();
+    setInterval(loadSession, 10000);
+
+    document.getElementById('device-badge').className = 'badge valid';
+    document.getElementById('device-badge').textContent = '✅ Recognized';
+
+    function submitAttendance() {
+        if (!hasDrawn) { alert('Please draw your pattern first!'); return; }
+
+        const patternValid = validateDrawing(assignedPattern);
+        document.getElementById('pattern-badge').className = 'badge ' + (patternValid ? 'valid' : 'invalid');
+        document.getElementById('pattern-badge').textContent = patternValid ? '✅ Valid' : '❌ Invalid Pattern';
+
+        if (!patternValid) {
+            const result = document.getElementById('result');
+            result.style.display = 'block';
+            result.className = 'result error';
+            result.textContent = '❌ Wrong pattern drawn. Please clear and try again.';
+            return;
+        }
+
+        fetch('/mark_attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                pattern_valid: patternValid,
+                location_valid: locationValid,
+                device_hash: getDeviceHash(),
+                course: document.getElementById('course-select').value
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            const result = document.getElementById('result');
+            result.style.display = 'block';
+            result.className = 'result ' + (data.success ? 'success' : 'error');
+            result.textContent = data.success ? '🎉 ' + data.message : '❌ ' + data.message;
+            if (data.success) setTimeout(() => window.location.href = '/dashboard', 2000);
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Attendance - Lecturer Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+        }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo h1 { color: #00b4d8; font-size: 24px; }
+        .logo p { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 5px; }
+        .form-group { margin-bottom: 20px; }
+        label { color: rgba(255,255,255,0.7); font-size: 13px; display: block; margin-bottom: 8px; }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.3s;
+        }
+        input:focus { border-color: #00b4d8; }
+        .btn {
+            width: 100%;
+            padding: 13px;
+            background: #00b4d8;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover { background: #0096c7; }
+        .error {
+            background: rgba(233,69,96,0.2);
+            border: 1px solid #e94560;
+            color: #e94560;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .link { text-align: center; margin-top: 20px; }
+        .link a { color: #00b4d8; text-decoration: none; font-size: 13px; }
+        .link p { color: rgba(255,255,255,0.5); font-size: 13px; }
+        .divider {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .divider a { color: rgba(255,255,255,0.4); font-size: 12px; text-decoration: none; }
+        .divider a:hover { color: #e94560; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>👨‍🏫 Lecturer Portal</h1>
+            <p>Smart Attendance Management System</p>
+        </div>
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        <form method="POST">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="email" placeholder="e.g. lecturer@aefunai.edu.ng" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <div class="link">
+            <p>Don't have an account? <a href="/lecturer/register">Register here</a></p>
+        </div>
+        <div class="divider">
+            <a href="/login">← Switch to Student Portal</a>
+        </div>
+    </div>
+</body>
+</html>
