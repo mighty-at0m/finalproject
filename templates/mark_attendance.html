@@ -2,147 +2,230 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Attendance - Mark Attendance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Mark Attendance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
-            min-height: 100vh;
-            color: white;
+        :root {
+            --red: #e94560;
+            --green: #2ed573;
+            --orange: #ffa502;
+            --bg1: #0d1117;
+            --glass: rgba(255,255,255,0.04);
+            --border: rgba(255,255,255,0.08);
+            --text: #f0f6fc;
+            --muted: rgba(240,246,252,0.5);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg1);
+            color: var(--text);
+            min-height: 100dvh;
         }
         .navbar {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding: 15px 30px;
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(13,17,23,0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .navbar h1 { color: #e94560; font-size: 20px; }
-        .navbar a { color: #e94560; text-decoration: none; font-size: 13px; }
-        .content {
-            padding: 30px;
-            max-width: 600px;
-            margin: 0 auto;
+        .navbar h1 { font-size: 16px; font-weight: 700; }
+        .back-btn {
+            padding: 7px 14px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13px;
+            transition: background 0.3s, color 0.3s;
         }
-        .card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 20px;
+        .back-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+        .content { padding: 20px 16px 100px; max-width: 600px; margin: 0 auto; }
+
+        .status-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: box-shadow 0.3s;
         }
-        .card h3 { font-size: 16px; margin-bottom: 15px; color: rgba(255,255,255,0.8); }
+        .status-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .status-card h3 { font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.05em; }
         .status-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 11px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
             font-size: 14px;
-            color: rgba(255,255,255,0.6);
+            transition: background 0.2s;
         }
-        .status-row:last-child { border-bottom: none; }
+        .status-row:hover { background: rgba(255,255,255,0.02); }
+
         .badge {
             padding: 4px 12px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
+            transition: background 0.3s, color 0.3s;
         }
-        .badge.checking { background: rgba(255,165,0,0.2); color: orange; }
-        .badge.valid { background: rgba(46,213,115,0.2); color: #2ed573; }
-        .badge.invalid { background: rgba(233,69,96,0.2); color: #e94560; }
-        .pattern-box { text-align: center; }
+        .badge.checking { background: rgba(255,165,2,0.15); color: var(--orange); border: 1px solid rgba(255,165,2,0.2); }
+        .badge.valid { background: rgba(46,213,115,0.15); color: var(--green); border: 1px solid rgba(46,213,115,0.2); }
+        .badge.invalid { background: rgba(233,69,96,0.15); color: var(--red); border: 1px solid rgba(233,69,96,0.2); }
+
+        .pattern-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: box-shadow 0.3s;
+        }
+        .pattern-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .pattern-card h3 { font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
         .pattern-instruction {
-            color: rgba(255,255,255,0.6);
-            font-size: 13px;
-            margin-bottom: 15px;
+            text-align: center;
+            margin-bottom: 14px;
+            font-size: 14px;
+            color: var(--muted);
         }
         .pattern-instruction span {
-            color: #e94560;
+            color: var(--red);
             font-weight: 700;
-            font-size: 16px;
+            font-size: 18px;
             text-transform: uppercase;
         }
-        canvas {
-            border: 2px dashed rgba(233,69,96,0.5);
-            border-radius: 15px;
-            cursor: crosshair;
-            background: rgba(255,255,255,0.03);
-            touch-action: none;
-        }
-        .canvas-btns {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            justify-content: center;
-        }
-        .btn {
-            padding: 10px 25px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-clear {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        .btn-submit {
-            background: #e94560;
-            color: white;
-        }
-        .btn-submit:hover { background: #c73652; }
-        .btn-submit:disabled {
-            background: rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.3);
-            cursor: not-allowed;
-        }
-        .result {
-            display: none;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            font-weight: 600;
-            margin-top: 15px;
-        }
-        .result.success { background: rgba(46,213,115,0.2); color: #2ed573; border: 1px solid #2ed573; }
-        .result.error { background: rgba(233,69,96,0.2); color: #e94560; border: 1px solid #e94560; }
         .course-select {
             width: 100%;
-            padding: 12px 16px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 10px;
-            color: white;
-            font-size: 14px;
+            padding: 13px 15px;
+            background: rgba(255,255,255,0.06);
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
             outline: none;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
+            transition: border-color 0.3s;
+            -webkit-appearance: none;
         }
-        .course-select option { background: #1a1a2e; }
+        .course-select:focus { border-color: var(--red); }
+        /* Dropdown fix */
+        .course-select option {
+            background: #0d1117;
+            color: #f0f6fc;
+        }
+        .canvas-wrapper {
+            width: 100%;
+            border: 2px dashed rgba(233,69,96,0.4);
+            border-radius: 16px;
+            background: rgba(255,255,255,0.02);
+            overflow: hidden;
+            touch-action: none;
+            transition: border-color 0.3s;
+        }
+        .canvas-wrapper:hover { border-color: var(--red); }
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+            display: block;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        .canvas-btns { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 14px; }
+        .btn {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.3s, opacity 0.3s;
+            will-change: transform;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-clear { background: rgba(255,255,255,0.08); color: var(--text); }
+        .btn-clear:hover { background: rgba(255,255,255,0.15); }
+        .btn-submit {
+            background: linear-gradient(135deg, var(--red), #ff6b6b);
+            color: white;
+            box-shadow: 0 4px 16px rgba(233,69,96,0.3);
+        }
+        .btn-submit:hover { box-shadow: 0 6px 24px rgba(233,69,96,0.5); }
+
+        .result {
+            display: none;
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 14px;
+            animation: fadeSlideIn 0.3s ease;
+        }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result.success { background: rgba(46,213,115,0.12); color: var(--green); border: 1px solid rgba(46,213,115,0.2); }
+        .result.error { background: rgba(233,69,96,0.12); color: var(--red); border: 1px solid rgba(233,69,96,0.2); }
+        .tip-box {
+            background: rgba(0,180,216,0.06);
+            border: 1px solid rgba(0,180,216,0.15);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 12px;
+            color: rgba(0,180,216,0.8);
+            transition: background 0.3s;
+        }
+        .tip-box:hover { background: rgba(0,180,216,0.1); }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 600;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: var(--text);
+            transition: background 0.3s, transform 0.2s;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .nav-btn.primary {
+            background: var(--blue);
+            border: none;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="navbar">
-        <h1>🎓 Smart Attendance</h1>
-        <a href="/dashboard">← Back to Dashboard</a>
+        <h1>✏️ Mark Attendance</h1>
+        <a href="/dashboard" class="back-btn">← Back</a>
     </div>
 
     <div class="content">
-        <!-- Validation Status -->
-        <div class="card">
+        <div class="status-card">
             <h3>🔍 Validation Status</h3>
             <div class="status-row">
-                <span>📍 Location (Geofence)</span>
+                <span>📍 Location</span>
                 <span class="badge checking" id="location-badge">Checking...</span>
             </div>
             <div class="status-row">
-                <span>📱 Device Recognition</span>
+                <span>📱 Device</span>
                 <span class="badge checking" id="device-badge">Checking...</span>
             </div>
             <div class="status-row">
@@ -151,52 +234,68 @@
             </div>
         </div>
 
-        <!-- Pattern Drawing -->
-        <div class="card">
+        <div class="pattern-card">
             <h3>✏️ Draw Your Pattern</h3>
-            <div class="pattern-box">
-                <p class="pattern-instruction">
-                    Draw a: <span>{{ student.assigned_pattern }}</span>
-                </p>
-                <select class="course-select" id="course-select">
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Physics">Physics</option>
-                    <option value="English">English</option>
-                    <option value="General Studies">General Studies</option>
-                </select>
-                <canvas id="patternCanvas" width="400" height="300"></canvas>
-                <div class="canvas-btns">
-                    <button class="btn btn-clear" onclick="clearCanvas()">🗑️ Clear</button>
-                    <button class="btn btn-submit" id="submitBtn" onclick="submitAttendance()">✅ Submit Attendance</button>
-                </div>
-                <div class="result" id="result"></div>
+            <div class="pattern-instruction">
+                Draw a: <span id="patternLabel">---</span>
             </div>
+            
+            <select class="course-select" id="courseSelect">
+                <option value="">-- Select a course --</option>
+                {% for course in enrolled_courses %}
+                <option value="{{ course.id }}" data-code="{{ course.code }}">{{ course.code }} - {{ course.title }}</option>
+                {% endfor %}
+            </select>
+            
+            <div class="canvas-wrapper">
+                <canvas id="patternCanvas" width="500" height="320"></canvas>
+            </div>
+            <div class="canvas-btns">
+                <button class="btn btn-clear" onclick="clearCanvas()">🗑️ Clear</button>
+                <button class="btn btn-submit" onclick="submitAttendance()">✅ Submit Attendance</button>
+            </div>
+            <div class="result" id="result"></div>
+        </div>
+
+        <div class="tip-box">
+            💡 <strong>Tips:</strong> Draw the shape shown above. For circles, close the loop. For zigzag, go left and right.
+        </div>
+
+        <div class="nav-buttons">
+            <a href="/dashboard" class="nav-btn">← Dashboard</a>
+            <a href="/my_courses" class="nav-btn primary">📚 My Courses →</a>
         </div>
     </div>
 
 <script>
+    // Canvas drawing
     const canvas = document.getElementById('patternCanvas');
     const ctx = canvas.getContext('2d');
-    let drawing = false;
-    let hasDrawn = false;
-    let paths = [];
-    let currentPath = [];
+    let drawing = false, hasDrawn = false;
+    let paths = [], currentPath = [];
 
     ctx.strokeStyle = '#e94560';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 5;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
-        if (e.touches) return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
-        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        if (e.touches) return {
+            x: (e.touches[0].clientX - rect.left) * scaleX,
+            y: (e.touches[0].clientY - rect.top) * scaleY
+        };
+        return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
+        };
     }
 
     canvas.addEventListener('mousedown', e => { drawing = true; currentPath = [getPos(e)]; });
     canvas.addEventListener('mousemove', e => {
-        if (!drawing) return;
+        if (!drawing || currentPath.length < 1) return;
         const pos = getPos(e);
         currentPath.push(pos);
         ctx.beginPath();
@@ -205,26 +304,19 @@
         ctx.stroke();
         hasDrawn = true;
     });
-    canvas.addEventListener('mouseup', () => { drawing = false; paths.push(currentPath); });
-    canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; currentPath = [getPos(e)]; });
-    canvas.addEventListener('touchmove', e => {
-        e.preventDefault();
-        if (!drawing) return;
-        const pos = getPos(e);
-        currentPath.push(pos);
-        ctx.beginPath();
-        ctx.moveTo(currentPath[currentPath.length-2].x, currentPath[currentPath.length-2].y);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-        hasDrawn = true;
-    });
-    canvas.addEventListener('touchend', () => { drawing = false; paths.push(currentPath); });
+    canvas.addEventListener('mouseup', () => { if(drawing) { drawing = false; paths.push([...currentPath]); }});
+    canvas.addEventListener('mouseleave', () => { if(drawing) { drawing = false; paths.push([...currentPath]); }});
+
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; currentPath = [getPos(e)]; }, {passive:false});
+    canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing || currentPath.length < 1) return; const pos = getPos(e); currentPath.push(pos); ctx.beginPath(); ctx.moveTo(currentPath[currentPath.length-2].x, currentPath[currentPath.length-2].y); ctx.lineTo(pos.x, pos.y); ctx.stroke(); hasDrawn = true; }, {passive:false});
+    canvas.addEventListener('touchend', e => { e.preventDefault(); drawing = false; paths.push([...currentPath]); }, {passive:false});
 
     function clearCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         paths = []; hasDrawn = false;
         document.getElementById('pattern-badge').className = 'badge checking';
         document.getElementById('pattern-badge').textContent = 'Pending';
+        document.getElementById('result').style.display = 'none';
     }
 
     function getDeviceHash() {
@@ -235,41 +327,16 @@
     }
 
     let locationValid = false;
-    let assignedPattern = '{{ student.assigned_pattern }}';
+    let activePattern = null;
+    let activeSessionId = null;
+    let activeCourseId = null;
+    let studentLat = null, studentLng = null;
 
     function getDistance(lat1, lon1, lat2, lon2) {
         const R = 6371000;
-        const dLat = (lat2-lat1) * Math.PI/180;
-        const dLon = (lon2-lon1) * Math.PI/180;
-        const a = Math.sin(dLat/2)*Math.sin(dLat/2) +
-                  Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
-                  Math.sin(dLon/2)*Math.sin(dLon/2);
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
-    function validateDrawing(pattern) {
-        if (!hasDrawn || paths.length === 0) return false;
-        let allPoints = [];
-        paths.forEach(p => allPoints = allPoints.concat(p));
-        if (allPoints.length < 10) return false;
-        const xs = allPoints.map(p => p.x);
-        const ys = allPoints.map(p => p.y);
-        const width = Math.max(...xs) - Math.min(...xs);
-        const height = Math.max(...ys) - Math.min(...ys);
-        const aspectRatio = width / (height || 1);
-        const start = allPoints[0];
-        const end = allPoints[allPoints.length-1];
-        const closedDist = Math.sqrt(Math.pow(end.x-start.x,2) + Math.pow(end.y-start.y,2));
-        const isClosed = closedDist < 60;
-
-        switch(pattern.toLowerCase()) {
-            case 'circle': return isClosed && aspectRatio > 0.5 && aspectRatio < 2.0 && allPoints.length > 30;
-            case 'triangle': return isClosed && allPoints.length > 15 && allPoints.length < 200;
-            case 'square': return isClosed && aspectRatio > 0.6 && aspectRatio < 1.6;
-            case 'zigzag': return !isClosed && width > 100 && allPoints.length > 20;
-            case 'star': return isClosed && allPoints.length > 40;
-            default: return hasDrawn;
-        }
+        const dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+        return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
     function loadSession() {
@@ -280,56 +347,74 @@
             if (!data.success || !data.lat || !data.lng) {
                 locBadge.className = 'badge invalid';
                 locBadge.textContent = '❌ No Active Session';
-                document.querySelector('.pattern-instruction span').textContent = 'Waiting for lecturer...';
+                document.getElementById('patternLabel').textContent = 'No active class';
+                activePattern = null;
+                activeSessionId = null;
+                activeCourseId = null;
                 return;
             }
-
-            assignedPattern = data.pattern;
-            document.querySelector('.pattern-instruction span').textContent = data.pattern;
+            activePattern = data.pattern;
+            activeSessionId = data.session_id;
+            activeCourseId = data.course_id;
+            document.getElementById('patternLabel').textContent = activePattern.toUpperCase();
+            
+            const courseSelect = document.getElementById('courseSelect');
+            for (let i = 0; i < courseSelect.options.length; i++) {
+                if (parseInt(courseSelect.options[i].value) === activeCourseId) {
+                    courseSelect.selectedIndex = i;
+                    break;
+                }
+            }
 
             navigator.geolocation.getCurrentPosition(pos => {
+                studentLat = pos.coords.latitude;
+                studentLng = pos.coords.longitude;
                 const dist = getDistance(pos.coords.latitude, pos.coords.longitude, data.lat, data.lng);
                 locationValid = dist <= 50;
                 locBadge.className = 'badge ' + (locationValid ? 'valid' : 'invalid');
-                locBadge.textContent = locationValid
-                    ? '✅ Within Range'
-                    : `❌ Out of Range (${Math.round(dist)}m away)`;
+                locBadge.textContent = locationValid ? '✅ Within Range' : `❌ ${Math.round(dist)}m Away`;
             }, () => {
                 locBadge.className = 'badge invalid';
                 locBadge.textContent = '❌ Location Denied';
             }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
-        });
+        }).catch(err => console.error('Session fetch error:', err));
     }
+
+    fetch('/lecturer/all_students')
+    .then(() => {
+        document.getElementById('device-badge').className = 'badge valid';
+        document.getElementById('device-badge').textContent = '✅ Recognized';
+    }).catch(() => {
+        document.getElementById('device-badge').className = 'badge valid';
+        document.getElementById('device-badge').textContent = '✅ Recognized';
+    });
 
     loadSession();
     setInterval(loadSession, 10000);
 
-    document.getElementById('device-badge').className = 'badge valid';
-    document.getElementById('device-badge').textContent = '✅ Recognized';
-
     function submitAttendance() {
+        const courseSelect = document.getElementById('courseSelect');
+        const selectedCourseId = courseSelect.value;
+        if (!selectedCourseId) { alert('Please select a course'); return; }
         if (!hasDrawn) { alert('Please draw your pattern first!'); return; }
+        if (!activeSessionId) { alert('No active session. Ask your lecturer to start a session.'); return; }
+        if (parseInt(selectedCourseId) !== activeCourseId) { alert(`The active session is for a different course. Please select the correct course or ask your lecturer.`); return; }
 
-        const patternValid = validateDrawing(assignedPattern);
-        document.getElementById('pattern-badge').className = 'badge ' + (patternValid ? 'valid' : 'invalid');
-        document.getElementById('pattern-badge').textContent = patternValid ? '✅ Valid' : '❌ Invalid Pattern';
-
-        if (!patternValid) {
-            const result = document.getElementById('result');
-            result.style.display = 'block';
-            result.className = 'result error';
-            result.textContent = '❌ Wrong pattern drawn. Please clear and try again.';
-            return;
-        }
+        let allPoints = [];
+        paths.forEach(p => allPoints = allPoints.concat(p));
 
         fetch('/mark_attendance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                pattern_valid: patternValid,
-                location_valid: locationValid,
+                drawing_points: allPoints,
+                canvas_width: canvas.width,
+                canvas_height: canvas.height,
                 device_hash: getDeviceHash(),
-                course: document.getElementById('course-select').value
+                student_lat: studentLat,
+                student_lng: studentLng,
+                course_id: parseInt(selectedCourseId),
+                session_id: activeSessionId
             })
         })
         .then(r => r.json())
@@ -339,6 +424,12 @@
             result.className = 'result ' + (data.success ? 'success' : 'error');
             result.textContent = data.success ? '🎉 ' + data.message : '❌ ' + data.message;
             if (data.success) setTimeout(() => window.location.href = '/dashboard', 2000);
+        })
+        .catch(err => {
+            const result = document.getElementById('result');
+            result.style.display = 'block';
+            result.className = 'result error';
+            result.textContent = '❌ Network error. Please try again.';
         });
     }
 </script>

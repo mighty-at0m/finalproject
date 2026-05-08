@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+{% block title %}Attendance Records – Session Drill‑Down{% endblock %}
+{% block content %}
+<style>
+    .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .section-card {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
+        transition: box-shadow 0.3s;
+    }
+    .section-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: var(--blue);
+    }
+    select {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-size: 15px;
+        margin-bottom: 16px;
+        transition: border-color 0.3s;
+        outline: none;
+    }
+    select:focus { border-color: var(--blue); }
+    select option { background: #0d1117; color: #f0f6fc; }
+
+    .download-btn {
+        padding: 8px 20px;
+        background: linear-gradient(135deg, var(--blue), #48cae4);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.3s;
+        margin-left: 10px;
+    }
+    .download-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(0,180,216,0.4);
+    }
+
+    .session-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+    }
+    .session-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        cursor: pointer;
+        transition: border-color 0.3s, transform 0.2s, box-shadow 0.3s;
+    }
+    .session-card:hover {
+        border-color: var(--blue);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    }
+    .session-card h4 { font-size: 15px; margin-bottom: 8px; }
+    .session-card .stats { display: flex; gap: 12px; font-size: 12px; color: var(--muted); }
+    .session-detail {
+        margin-top: 16px;
+        border-top: 1px solid var(--border);
+        padding-top: 16px;
+    }
+    .filter-btns { display: flex; gap: 8px; margin-bottom: 12px; }
+    .filter-btn {
+        padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.05);
+        border: 1px solid var(--border); color: var(--muted); font-size: 12px; cursor: pointer;
+        transition: background 0.3s, border-color 0.3s, transform 0.2s;
+    }
+    .filter-btn:hover { background: rgba(255,255,255,0.1); }
+    .filter-btn.active { background: var(--blue); color: white; border-color: var(--blue); transform: scale(1.05); }
+    .student-list { display: flex; flex-direction: column; gap: 6px; }
+    .student-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        transition: background 0.2s;
+    }
+    .student-row:hover { background: rgba(255,255,255,0.02); }
+    .badge { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; }
+    .badge.present { background: rgba(46,213,115,0.15); color: var(--green); }
+    .badge.absent { background: rgba(233,69,96,0.15); color: var(--red); }
+    .empty { text-align: center; padding: 30px; color: var(--muted); }
+    .empty-sm { text-align: center; padding: 12px; color: var(--muted); font-size: 13px; }
+
+    .filter-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+</style>
+
+<div class="container">
+    <div class="section-card">
+        <div class="section-title">📋 Attendance Records by Session</div>
+
+        <select id="courseSelect">
+            <option value="">-- Select a course --</option>
+        </select>
+
+        <div class="filter-row">
+            <select id="deptFilterSelect" disabled style="flex:1;">
+                <option value="">All Departments</option>
+            </select>
+            <button class="download-btn" id="downloadBtn">📥 Download Sheet</button>
+        </div>
+
+        <div id="sessionsContainer">
+            <div class="empty">Select a course to view its class sessions.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentCourseId = null;
+    let currentDeptId = null;
+    let activeSessionId = null;
+    let currentStatusFilter = "";
+
+    async function loadMyCourses() {
+        try {
+            const res = await fetch('/lecturer/my_courses');
+            const data = await res.json();
+            const select = document.getElementById('courseSelect');
+            select.innerHTML = '<option value="">-- Select a course --</option>';
+            if (data.success && data.courses.length > 0) {
+                data.courses.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = `${c.code} - ${c.title}`;
+                    select.appendChild(opt);
+                });
+            } else {
+                select.innerHTML += '<option disabled>No courses available</option>';
+            }
+        } catch (err) {
+            console.error('Failed to load courses:', err);
+        }
+    }
+
+    async function loadCourseDepartments(courseId) {
+        const deptSelect = document.getElementById('deptFilterSelect');
+        deptSelect.innerHTML = '<option value="">All Departments</option>';
+        deptSelect.disabled = true;
+        if (!courseId) return;
+        try {
+            const res = await fetch(`/api/course_departments/${courseId}`);
+            const departments = await res.json();
+            departments.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = d.name;
+                deptSelect.appendChild(opt);
+            });
+            deptSelect.disabled = false;
+            deptSelect.value = "";
+        } catch (err) {
+            console.error('Failed to load departments:', err);
+        }
+    }
+
+    async function loadSessions() {
+        const container = document.getElementById('sessionsContainer');
+        if (!currentCourseId) return;
+        container.innerHTML = '<div class="empty">Loading sessions...</div>';
+        let url = `/lecturer/course_sessions/${currentCourseId}`;
+        if (currentDeptId) url += `?department_id=${currentDeptId}`;
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if (!data.success) {
+                container.innerHTML = `<div class="empty">${data.message}</div>`;
+                return;
+            }
+            renderSessions(data.sessions);
+        } catch (err) {
+            console.error('Failed to load sessions:', err);
+        }
+    }
+
+    function renderSessions(sessions) {
+        const container = document.getElementById('sessionsContainer');
+        if (!sessions.length) {
+            container.innerHTML = '<div class="empty">No sessions recorded for this course.</div>';
+            return;
+        }
+        container.innerHTML = `
+            <div class="session-grid">
+                ${sessions.map(s => `
+                    <div class="session-card" data-session-id="${s.id}" onclick="toggleSessionDetail(${s.id}, this)">
+                        <h4>${s.started_at}</h4>
+                        <div class="stats">
+                            <span>✅ Present: ${s.present}</span>
+                            <span>❌ Absent: ${s.absent}</span>
+                            <span>👥 Total: ${s.total}</span>
+                        </div>
+                        <div style="margin-top:6px; font-size:12px; color:var(--muted);">
+                            Pattern: ${s.pattern} | ${s.is_active ? '🟢 Active' : (s.ended_at ? '⏹️ Ended' : '')}
+                        </div>
+                        <div class="session-detail" id="session-detail-${s.id}" style="display:none;"></div>
+                    </div>
+                `).join('')}
+            </div>`;
+    }
+
+    async function toggleSessionDetail(sessionId, cardElement) {
+        const detailDiv = document.getElementById(`session-detail-${sessionId}`);
+        if (!detailDiv) return;
+        if (detailDiv.style.display === 'none' || detailDiv.style.display === '') {
+            document.querySelectorAll('.session-detail').forEach(d => d.style.display = 'none');
+            detailDiv.style.display = 'block';
+            activeSessionId = sessionId;
+            currentStatusFilter = "";
+            await loadSessionAttendance(sessionId, "", currentDeptId, detailDiv);
+        } else {
+            detailDiv.style.display = 'none';
+        }
+    }
+
+    async function loadSessionAttendance(sessionId, status, deptId, targetDiv) {
+        targetDiv.innerHTML = '<div style="padding:10px;">Loading...</div>';
+        let url = `/lecturer/session_attendance/${sessionId}?status=${status}`;
+        if (deptId) url += `&department_id=${deptId}`;
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if (!data.success) {
+                targetDiv.innerHTML = `<div class="empty">${data.message}</div>`;
+                return;
+            }
+            renderAttendanceRecords(data.records, targetDiv, sessionId);
+        } catch (err) {
+            console.error('Failed to load session attendance:', err);
+        }
+    }
+
+    function renderAttendanceRecords(records, container, sessionId) {
+        // Always render filter buttons first
+        const filterHTML = `
+            <div class="filter-btns">
+                <button class="filter-btn ${currentStatusFilter===''?'active':''}" onclick="setFilter('','${sessionId}', event)">All</button>
+                <button class="filter-btn ${currentStatusFilter==='present'?'active':''}" onclick="setFilter('present','${sessionId}', event)">Present</button>
+                <button class="filter-btn ${currentStatusFilter==='absent'?'active':''}" onclick="setFilter('absent','${sessionId}', event)">Absent</button>
+            </div>`;
+
+        if (records.length === 0) {
+            // Show filter buttons + empty message
+            container.innerHTML = filterHTML + '<div class="empty-sm">No records match.</div>';
+            return;
+        }
+
+        // Build student list
+        let studentHTML = filterHTML + '<div class="student-list">';
+        records.forEach(r => {
+            studentHTML += `
+                <div class="student-row">
+                    <div>
+                        <strong>${r.student_name}</strong>
+                        <small>${r.matric_no}${r.department ? ` · ${r.department}` : ''}</small>
+                    </div>
+                    <span class="badge ${r.status}">${r.status.toUpperCase()}</span>
+                </div>`;
+        });
+        studentHTML += '</div>';
+        container.innerHTML = studentHTML;
+    }
+
+    function setFilter(status, sessionId, event) {
+        if (event) event.stopPropagation();
+        currentStatusFilter = status;
+        const detailDiv = document.getElementById(`session-detail-${sessionId}`);
+        if (detailDiv) {
+            loadSessionAttendance(sessionId, status, currentDeptId, detailDiv);
+        }
+    }
+
+    function downloadAttendance() {
+        if (!currentCourseId) { alert('Select a course first'); return; }
+        let url = `/lecturer/download_attendance/${currentCourseId}`;
+        if (currentDeptId) url += `?department_id=${currentDeptId}`;
+        window.open(url, '_blank');
+    }
+
+    // Event listeners
+    document.getElementById('courseSelect').addEventListener('change', function(e) {
+        const courseId = e.target.value;
+        currentCourseId = courseId;
+        currentDeptId = null;
+        document.getElementById('deptFilterSelect').value = "";
+        if (!courseId) {
+            document.getElementById('sessionsContainer').innerHTML = '<div class="empty">Select a course to view its sessions.</div>';
+            document.getElementById('deptFilterSelect').disabled = true;
+            return;
+        }
+        loadCourseDepartments(courseId);
+        loadSessions();
+    });
+
+    document.getElementById('deptFilterSelect').addEventListener('change', function(e) {
+        currentDeptId = e.target.value || null;
+        loadSessions();
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', downloadAttendance);
+
+    // Initial load
+    loadMyCourses();
+</script>
+{% endblock %}

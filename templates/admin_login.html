@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--gold:#f4a261;--bg1:#0d1117;--glass:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--text:#f0f6fc;--muted:rgba(240,246,252,0.5)}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'Space Grotesk',sans-serif;background:var(--bg1);color:var(--text);min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:radial-gradient(ellipse at center,rgba(244,162,97,0.08) 0%,transparent 60%),var(--bg1)}
+        .container{width:100%;max-width:400px;background:var(--glass);border:1px solid var(--border);border-radius:24px;padding:36px 28px}
+        .logo{text-align:center;margin-bottom:28px}
+        .logo-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--gold),#e76f51);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px;box-shadow:0 8px 32px rgba(244,162,97,0.25)}
+        .logo h1{font-size:22px;font-weight:700}
+        .logo p{font-size:13px;color:var(--muted);margin-top:4px}
+        .badge{display:inline-block;background:rgba(244,162,97,0.1);border:1px solid rgba(244,162,97,0.2);color:var(--gold);font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;margin-top:8px;letter-spacing:0.06em}
+        .form-group{margin-bottom:16px}
+        label{font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em}
+        input{width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-family:inherit;outline:none;transition:border-color 0.2s;-webkit-appearance:none}
+        input:focus{border-color:var(--gold)}
+        input::placeholder{color:rgba(255,255,255,0.2)}
+        .btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),#e76f51);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 4px 20px rgba(244,162,97,0.3);margin-top:8px;transition:transform 0.1s}
+        .btn:active{transform:scale(0.98)}
+        .error{background:rgba(233,69,96,0.1);border:1px solid rgba(233,69,96,0.3);color:#ff8099;padding:12px;border-radius:10px;font-size:13px;margin-bottom:16px;text-align:center}
+        .back-links{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+        .back-links a{font-size:12px;color:var(--muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:8px}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo">
+        <div class="logo-icon">⚙️</div>
+        <h1>Admin Panel</h1>
+        <p>Smart Attendance System</p>
+        <span class="badge">ADMINISTRATOR</span>
+    </div>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <form method="POST">
+        <div class="form-group"><label>Username</label><input type="text" name="username" placeholder="admin" autocomplete="username" required></div>
+        <div class="form-group"><label>Password</label><input type="password" name="password" placeholder="Enter admin password" autocomplete="current-password" required></div>
+        <button type="submit" class="btn">Login to Admin Panel</button>
+    </form>
+    <div class="back-links">
+        <a href="/login">🎓 Student Portal</a>
+        <a href="/lecturer/login">👨‍🏫 Lecturer Portal</a>
+    </div>
+</div>
+</body>
+</html>

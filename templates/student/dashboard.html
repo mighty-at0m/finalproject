@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+{% block content %}
+<style>
+    .welcome{background:linear-gradient(135deg,rgba(233,69,96,0.1),rgba(233,69,96,0.03));border:1px solid rgba(233,69,96,0.15);border-radius:18px;padding:18px;margin-bottom:16px}
+    .welcome h2{font-size:19px;font-weight:700}
+    .welcome-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .meta-tag{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:7px;padding:3px 9px;font-size:11px;color:var(--muted)}
+    .meta-tag strong{color:var(--text)}
+    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    .stat-card{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center}
+    .stat-card h3{font-size:26px;font-weight:700;color:var(--red)}
+    .stat-card p{font-size:11px;color:var(--muted);margin-top:4px}
+    .mark-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;background:linear-gradient(135deg,var(--red),#ff6b6b);color:white;border-radius:14px;text-decoration:none;font-size:15px;font-weight:700;margin-bottom:16px;box-shadow:0 6px 20px rgba(233,69,96,0.3);transition:transform 0.1s}
+    .mark-btn:active{transform:scale(0.98)}
+    .section-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .course-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:20px}
+    @media(min-width:480px){.course-grid{grid-template-columns:1fr 1fr}}
+    .course-card{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:16px;text-decoration:none;color:var(--text);transition:border-color 0.2s;display:block}
+    .course-card:hover{border-color:rgba(0,180,216,0.3)}
+    .course-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+    .course-code-label{font-size:16px;font-weight:700;color:var(--blue)}
+    .course-rate{font-size:14px;font-weight:700}
+    .course-stats-row{display:flex;gap:10px;font-size:12px;color:var(--muted);margin-bottom:8px}
+    .mini-progress{background:rgba(255,255,255,0.08);border-radius:6px;height:5px;overflow:hidden}
+    .mini-fill{height:100%;border-radius:6px}
+    .warning-dot{width:8px;height:8px;background:#ffa502;border-radius:50%;display:inline-block;margin-left:4px}
+    .history-card{background:var(--glass);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+    .history-header{padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+    .att-item{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .att-item:last-child{border-bottom:none}
+    .att-course{font-size:13px;font-weight:600;color:var(--blue)}
+    .att-date{font-size:11px;color:var(--muted);margin-top:2px}
+    .badge{padding:3px 9px;border-radius:16px;font-size:10px;font-weight:700}
+    .badge.present{background:rgba(46,213,115,0.15);color:var(--green)}
+    .badge.absent{background:rgba(233,69,96,0.15);color:var(--red)}
+    .empty{text-align:center;padding:36px;color:var(--muted);font-size:13px}
+    .warning{background:rgba(255,165,2,0.1);border-left:4px solid #ffa502;padding:12px;margin:10px 0;border-radius:8px}
+</style>
+
+<div class="welcome">
+    <h2>Hey, {{ student.full_name.split()[0] }}! 👋</h2>
+    <div class="welcome-meta">
+        <span class="meta-tag">📋 <strong>{{ student.matric_no }}</strong></span>
+        {% if student.department_rel %}<span class="meta-tag">🏛️ <strong>{{ student.department_rel.name }}</strong></span>{% endif %}
+        {% if student.level %}<span class="meta-tag">📚 <strong>{{ student.level }} Level</strong></span>{% endif %}
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card"><h3>{{ attendances | length }}</h3><p>Total Sessions</p></div>
+    <div class="stat-card"><h3 style="color:var(--green)">{{ attendances | selectattr('status','equalto','present') | list | length }}</h3><p>Present</p></div>
+    <div class="stat-card"><h3>{{ course_stats | length }}</h3><p>Courses Enrolled</p></div>
+</div>
+
+<a href="/mark_attendance" class="mark-btn">✅ Mark Attendance</a>
+
+{% if course_stats %}
+<div class="section-title">📚 My Enrolled Courses</div>
+<div class="course-grid">
+    {% for code, stats in course_stats.items() %}
+    <a href="/course_attendance/{{ code }}" class="course-card">
+        <div class="course-card-top">
+            <div class="course-code-label">{{ code }}</div>
+            <div class="course-rate" style="color:{% if stats.rate >= 75 %}var(--green){% elif stats.rate >= 50 %}#ffa502{% else %}var(--red){% endif %}">
+                {{ stats.rate }}% {% if stats.rate < 75 %}<span class="warning-dot"></span>{% endif %}
+            </div>
+        </div>
+        <div class="course-stats-row">
+            <span>✅ {{ stats.present }} present</span>
+            <span>❌ {{ stats.absent }} absent</span>
+        </div>
+        <div class="mini-progress"><div class="mini-fill" style="width:{{ stats.rate }}%"></div></div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty">You haven't enrolled in any courses. <a href="/my_courses">Enroll now →</a></div>
+{% endif %}
+
+<div class="history-card">
+    <div class="history-header">📋 Recent Attendance</div>
+    {% if attendances %}
+        {% for a in attendances[:10] %}
+        <div class="att-item">
+            <div><div class="att-course">{{ a.course_code }}</div><div class="att-date">{{ a.timestamp.strftime('%d %b %Y, %I:%M %p') }}</div></div>
+            <span class="badge {{ a.status }}">{{ a.status | upper }}</span>
+        </div>
+        {% endfor %}
+    {% else %}<div class="empty">No records yet. Attend a class to see your history.</div>{% endif %}
+</div>
+{% endblock %}

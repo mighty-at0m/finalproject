@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}My Courses{% endblock %}
+{% block content %}
+<style>
+    .section-card { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 24px; transition: box-shadow 0.3s; }
+    .section-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--blue); }
+    .course-list { display: flex; flex-direction: column; gap: 10px; }
+    .course-card {
+        background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+        display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+        transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+    }
+    .course-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .course-code { font-size: 16px; font-weight: 700; color: var(--blue); transition: color 0.3s; }
+    .btn-sm {
+        padding: 6px 12px; font-size: 12px; width: auto; margin: 0; border: none; border-radius: 8px;
+        font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.3s;
+    }
+    .btn-primary { background: var(--blue); color: white; }
+    .btn-primary:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,180,216,0.4); }
+    .btn-danger { background: var(--red); color: white; }
+    .btn-danger:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(233,69,96,0.4); }
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+    .filter-bar select, .search-input {
+        flex: 1; padding: 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 8px;
+        color: var(--text); font-size: 14px; outline: none; transition: border-color 0.3s;
+    }
+    .filter-bar select:focus, .search-input:focus { border-color: var(--blue); }
+    .search-input { width: 100%; margin-bottom: 15px; }
+    .empty { text-align: center; padding: 30px; color: var(--muted); }
+
+    /* Dropdown fix */
+    select option { background: #0d1117; color: #f0f6fc; }
+</style>
+
+<div class="container">
+    <div class="section-card">
+        <div class="section-title">📚 My Courses</div>
+        <div id="myCoursesList" class="course-list">Loading...</div>
+    </div>
+
+    <div class="section-card">
+        <div class="section-title">➕ Add More Courses</div>
+        <div class="filter-bar">
+            <select id="facultySelect"><option value="">-- Faculty --</option></select>
+            <select id="deptSelect" disabled><option value="">-- Department --</option></select>
+            <select id="levelSelect" disabled><option value="">-- Level --</option></select>
+        </div>
+        <input type="text" id="searchInput" class="search-input" placeholder="🔎 Search by course code or title">
+        <div id="availableCoursesList" class="course-list"></div>
+    </div>
+</div>
+
+<script>
+    let myCourses = [];
+
+    async function loadMyCourses() {
+        const res = await fetch('/lecturer/my_courses');
+        const data = await res.json();
+        if (data.success) {
+            myCourses = data.courses;
+            const container = document.getElementById('myCoursesList');
+            if (myCourses.length === 0) { container.innerHTML = '<div class="empty">No courses assigned.</div>'; return; }
+            container.innerHTML = myCourses.map(c => `
+                <div class="course-card">
+                    <div><span class="course-code">${c.code}</span><br>${c.title}<br><small>${c.department} | Level ${c.level}</small></div>
+                    <button class="btn-sm btn-danger" onclick="removeCourse(${c.id})">Remove</button>
+                </div>
+            `).join('');
+        }
+    }
+
+    async function removeCourse(courseId) {
+        if (!confirm('Remove this course?')) return;
+        const res = await fetch('/lecturer/remove_course', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ course_id: courseId })
+        });
+        const data = await res.json();
+        alert(data.message);
+        if (data.success) loadMyCourses();
+    }
+
+    async function loadFaculties() {
+        const res = await fetch('/api/faculties');
+        const faculties = await res.json();
+        const select = document.getElementById('facultySelect');
+        select.innerHTML = '<option value="">-- Faculty --</option>';
+        faculties.forEach(f => { const opt = document.createElement('option'); opt.value = f.id; opt.textContent = f.name; select.appendChild(opt); });
+    }
+
+    document.getElementById('facultySelect').addEventListener('change', async (e) => {
+        const fid = e.target.value;
+        const deptSelect = document.getElementById('deptSelect');
+        deptSelect.innerHTML = '<option value="">-- Department --</option>';
+        deptSelect.disabled = true;
+        document.getElementById('levelSelect').innerHTML = '<option value="">-- Level --</option>';
+        document.getElementById('levelSelect').disabled = true;
+        if (!fid) return;
+        const res = await fetch(`/api/departments/${fid}`);
+        const depts = await res.json();
+        depts.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.name; deptSelect.appendChild(opt); });
+        deptSelect.disabled = false;
+    });
+
+    document.getElementById('deptSelect').addEventListener('change', async (e) => {
+        const did = e.target.value;
+        const levelSelect = document.getElementById('levelSelect');
+        levelSelect.innerHTML = '<option value="">-- Level --</option>';
+        levelSelect.disabled = true;
+        if (!did) return;
+        const res = await fetch(`/api/levels/${did}`);
+        const levels = await res.json();
+        levels.forEach(l => { const opt = document.createElement('option'); opt.value = l; opt.textContent = `${l} Level`; levelSelect.appendChild(opt); });
+        levelSelect.disabled = false;
+    });
+
+    async function loadAvailableCourses() {
+        const fid = document.getElementById('facultySelect').value;
+        const did = document.getElementById('deptSelect').value;
+        const level = document.getElementById('levelSelect').value;
+        if (!fid || !did || !level) { document.getElementById('availableCoursesList').innerHTML = ''; return; }
+        const url = `/api/all_courses?faculty_id=${fid}&department_id=${did}&level=${level}`;
+        const res = await fetch(url);
+        let courses = await res.json();
+        const myCourseIds = myCourses.map(c => c.id);
+        courses = courses.filter(c => !myCourseIds.includes(c.id));
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        if (search) courses = courses.filter(c => c.code.toLowerCase().includes(search) || c.title.toLowerCase().includes(search));
+        const container = document.getElementById('availableCoursesList');
+        if (!courses.length) { container.innerHTML = '<div class="empty">No courses available</div>'; return; }
+        container.innerHTML = courses.map(c => `
+            <div class="course-card">
+                <div><span class="course-code">${c.code}</span><br>${c.title}<br><small>${c.department} | Level ${c.level}</small></div>
+                <button class="btn-sm btn-primary" onclick="addCourse(${c.id})">Add to My Courses</button>
+            </div>
+        `).join('');
+    }
+
+    async function addCourse(courseId) {
+        const res = await fetch('/lecturer/add_course', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ course_id: courseId })
+        });
+        const data = await res.json();
+        alert(data.message);
+        if (data.success) { loadMyCourses(); loadAvailableCourses(); }
+    }
+
+    document.getElementById('levelSelect').addEventListener('change', loadAvailableCourses);
+    document.getElementById('searchInput').addEventListener('input', loadAvailableCourses);
+    loadFaculties();
+    loadMyCourses();
+</script>
+{% endblock %}

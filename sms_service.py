@@ -1,18 +1,17 @@
+import os
 from twilio.rest import Client
 
-# Replace these with your actual Twilio credentials
-TWILIO_ACCOUNT_SID = 'your_account_sid_here'
-TWILIO_AUTH_TOKEN = 'your_auth_token_here'
-TWILIO_PHONE_NUMBER = 'your_twilio_number_here'  # e.g. +12345678901
+# Load from environment (never hardcode)
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '')
 
 def send_sms(to_phone, message):
-    """
-    Send SMS to a phone number.
-    to_phone: recipient number e.g. +2348012345678
-    message: SMS text content
-    """
+    """Send SMS – returns (success, message_or_sid)"""
+    if not TWILIO_ACCOUNT_SID:
+        print("⚠️ Twilio not configured – SMS would be sent:", message)
+        return True, "Simulated (no credentials)"
     try:
-        # Format Nigerian number properly
         if to_phone.startswith('0'):
             to_phone = '+234' + to_phone[1:]
         elif not to_phone.startswith('+'):
@@ -26,11 +25,9 @@ def send_sms(to_phone, message):
         )
         print(f"SMS sent to {to_phone}: {msg.sid}")
         return True, msg.sid
-
     except Exception as e:
         print(f"SMS failed: {str(e)}")
         return False, str(e)
-
 
 def send_attendance_alert(student_name, parent_phone, course, status, timestamp):
     """Send attendance notification to parent."""
@@ -51,7 +48,6 @@ def send_attendance_alert(student_name, parent_phone, course, status, timestamp)
             f"- Smart Attendance System, AEFUNAi"
         )
     return send_sms(parent_phone, message)
-
 
 def send_absence_warning(student_name, parent_phone, course, absent_count, total):
     """Send warning when attendance rate drops below 75%."""

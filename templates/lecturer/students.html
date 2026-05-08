@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% block title %}Students – Enrolled in My Courses{% endblock %}
+{% block content %}
+<style>
+    .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .section-card {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
+        transition: box-shadow 0.3s;
+    }
+    .section-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: var(--blue);
+    }
+    .course-select {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-size: 15px;
+        margin-bottom: 16px;
+        transition: border-color 0.3s;
+        outline: none;
+    }
+    .course-select:focus { border-color: var(--blue); }
+    .course-select option { background: #0d1117; color: #f0f6fc; }
+
+    .student-list { display: flex; flex-direction: column; gap: 10px; }
+    .student-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+    }
+    .student-card:hover {
+        background: rgba(255,255,255,0.06);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        background: rgba(0,180,216,0.15);
+        color: var(--blue);
+        transition: background 0.3s;
+    }
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--blue);
+        color: white;
+        transition: transform 0.2s, box-shadow 0.3s;
+    }
+    .btn-sm:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,180,216,0.4); }
+    .empty { text-align: center; padding: 30px; color: var(--muted); }
+    .table-wrapper { overflow-x: auto; display: none; }
+    @media (min-width: 768px) { .student-list { display: none; } .table-wrapper { display: block; } }
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.2s; }
+    th { color: var(--muted); font-weight: 500; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+    /* Modal */
+    .modal-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;
+        animation: fadeIn 0.3s;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .modal {
+        background: var(--bg1); border: 1px solid var(--border); border-radius: 16px;
+        padding: 24px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto;
+        position: relative;
+        animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-close {
+        position: absolute; top: 12px; right: 12px;
+        background: none; border: 1px solid var(--border); color: var(--text);
+        border-radius: 8px; padding: 6px 10px; cursor: pointer;
+        transition: background 0.3s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.1); }
+    .att-item {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+        transition: background 0.2s;
+    }
+    .att-item:hover { background: rgba(255,255,255,0.02); }
+</style>
+
+<div class="container">
+    <div class="section-card">
+        <div class="section-title">👥 Students Enrolled in My Course</div>
+        <select id="courseSelect" class="course-select">
+            <option value="">-- Select a course --</option>
+        </select>
+        <div id="studentsContainer">
+            <div class="empty">Select a course to view enrolled students.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Detail Modal -->
+<div class="modal-overlay" id="studentModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <h2 id="modalName"></h2>
+        <div id="modalInfo"></div>
+        <h3 style="margin-top: 20px;">Attendance for this course</h3>
+        <div id="modalAttendance"></div>
+    </div>
+</div>
+
+<script>
+    let currentCourseId = null;
+
+    async function loadMyCourses() {
+        const res = await fetch('/lecturer/my_courses');
+        const data = await res.json();
+        if (data.success) {
+            const select = document.getElementById('courseSelect');
+            select.innerHTML = '<option value="">-- Select a course --</option>';
+            data.courses.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.code} - ${c.title}`;
+                select.appendChild(opt);
+            });
+        }
+    }
+
+    document.getElementById('courseSelect').addEventListener('change', async (e) => {
+        const courseId = e.target.value;
+        if (!courseId) {
+            document.getElementById('studentsContainer').innerHTML = '<div class="empty">Select a course to view enrolled students.</div>';
+            return;
+        }
+        currentCourseId = courseId;
+        document.getElementById('studentsContainer').innerHTML = '<div class="empty">Loading...</div>';
+        const res = await fetch(`/lecturer/enrolled_students/${courseId}`);
+        const data = await res.json();
+        if (!data.success) {
+            document.getElementById('studentsContainer').innerHTML = `<div class="empty">${data.message}</div>`;
+            return;
+        }
+        renderStudents(data.students);
+    });
+
+    function renderStudents(students) {
+        const container = document.getElementById('studentsContainer');
+        if (!students.length) {
+            container.innerHTML = '<div class="empty">No students enrolled in this course.</div>';
+            return;
+        }
+        let html = '<div class="student-list">' + students.map(s => `
+            <div class="student-card">
+                <div>
+                    <strong>${s.name}</strong><br>
+                    <small>${s.matric_no}</small><br>
+                    <small>${s.department} | Level ${s.level}</small>
+                    <div>P:${s.present} A:${s.absent} Rate:${s.rate}%</div>
+                    <span class="badge">${s.device_bound ? 'Bound' : 'Unbound'}</span>
+                </div>
+                <button class="btn-sm" onclick="showStudentDetails(${s.id})">View Details</button>
+            </div>
+        `).join('') + '</div>';
+
+        if (window.innerWidth >= 768) {
+            container.innerHTML = `<div class="table-wrapper"><table>
+                <thead><tr><th>Name</th><th>Matric</th><th>Present</th><th>Absent</th><th>Rate</th><th>Device</th><th>Action</th></tr></thead>
+                <tbody>${students.map(s => `
+                    <tr>
+                        <td>${s.name}</td>
+                        <td>${s.matric_no}</td>
+                        <td>${s.present}</td>
+                        <td>${s.absent}</td>
+                        <td>${s.rate}%</td>
+                        <td><span class="badge">${s.device_bound ? 'Bound' : 'Unbound'}</span></td>
+                        <td><button class="btn-sm" onclick="showStudentDetails(${s.id})">View</button></td>
+                    </tr>
+                `).join('')}</tbody></table></div>`;
+        }
+    }
+
+    function showStudentDetails(studentId) {
+        if (!currentCourseId) return;
+        document.getElementById('studentModal').style.display = 'flex';
+        fetch(`/lecturer/student_detail/${studentId}/${currentCourseId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                document.getElementById('modalName').textContent = 'Error';
+                document.getElementById('modalInfo').textContent = data.message;
+                document.getElementById('modalAttendance').innerHTML = '';
+                return;
+            }
+            const s = data.student;
+            document.getElementById('modalName').textContent = s.full_name;
+            document.getElementById('modalInfo').innerHTML = `
+                <div>Matric: <strong>${s.matric_no}</strong></div>
+                <div>Email: ${s.email}</div>
+                <div>Parent Phone: ${s.parent_phone}</div>
+                <div>Department: ${s.department}</div>
+                <div>Level: ${s.level}</div>
+                <div>Faculty: ${s.faculty}</div>
+                <div>Device Bound: ${s.device_bound ? 'Yes' : 'No'}</div>
+            `;
+            const attContainer = document.getElementById('modalAttendance');
+            if (data.attendances.length === 0) {
+                attContainer.innerHTML = '<p>No attendance records for this course.</p>';
+                return;
+            }
+            attContainer.innerHTML = data.attendances.map(a => `
+                <div class="att-item">
+                    <div>${a.date}</div>
+                    <span class="badge" style="background:${a.status==='present'?'rgba(46,213,115,0.15)':'rgba(233,69,96,0.15)'}; color:${a.status==='present'?'var(--green)':'var(--red)'}">${a.status.toUpperCase()}</span>
+                </div>
+            `).join('');
+        });
+    }
+
+    function closeModal() {
+        document.getElementById('studentModal').style.display = 'none';
+    }
+
+    document.getElementById('studentModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    loadMyCourses();
+</script>
+{% endblock %}

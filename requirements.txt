@@ -1,0 +1,8 @@
+ Flask==2.3.3
+Flask-Bcrypt==1.0.1
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.1.1
+mysql-connector-python==8.1.0
+twilio==8.10.0
+python-dotenv==1.0.0
+Werkzeug==2.3.7

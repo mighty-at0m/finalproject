@@ -21,7 +21,7 @@
             border-radius: 20px;
             padding: 40px;
             width: 100%;
-            max-width: 420px;
+            max-width: 450px;
             margin: 30px auto;
         }
         .logo { text-align: center; margin-bottom: 30px; }
@@ -87,7 +87,7 @@
         {% if error %}
         <div class="error">{{ error }}</div>
         {% endif %}
-        <form method="POST">
+        <form method="POST" id="registerForm">
             <div class="form-group">
                 <label>Full Name</label>
                 <input type="text" name="full_name" placeholder="e.g. Dr. John Doe" required>
@@ -101,13 +101,18 @@
                 <input type="password" name="password" placeholder="Create a password" required>
             </div>
             <div class="form-group">
-                <label>Course</label>
-                <select name="course">
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Physics">Physics</option>
-                    <option value="English">English</option>
-                    <option value="General Studies">General Studies</option>
+                <label>Faculty</label>
+                <select name="faculty_id" id="facultySelect" required>
+                    <option value="">-- Select Faculty --</option>
+                    {% for faculty in faculties %}
+                    <option value="{{ faculty.id }}">{{ faculty.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Department</label>
+                <select name="department_id" id="deptSelect" disabled required>
+                    <option value="">-- Select Department --</option>
                 </select>
             </div>
             <button type="submit" class="btn">Register</button>
@@ -119,5 +124,27 @@
             <a href="/login">← Switch to Student Portal</a>
         </div>
     </div>
+
+    <script>
+        const facultySelect = document.getElementById('facultySelect');
+        const deptSelect = document.getElementById('deptSelect');
+
+        facultySelect.addEventListener('change', async () => {
+            const facultyId = facultySelect.value;
+            deptSelect.innerHTML = '<option value="">-- Select Department --</option>';
+            deptSelect.disabled = true;
+            if (!facultyId) return;
+
+            const response = await fetch(`/api/departments/${facultyId}`);
+            const departments = await response.json();
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.id;
+                option.textContent = dept.name;
+                deptSelect.appendChild(option);
+            });
+            deptSelect.disabled = false;
+        });
+    </script>
 </body>
 </html>

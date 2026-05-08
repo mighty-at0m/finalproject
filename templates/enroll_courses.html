@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% block title %}My Courses – Enrollment{% endblock %}
+{% block content %}
+<style>
+    .section-card {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: var(--blue);
+    }
+    .enrolled-grid, .courses-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: 1fr;
+    }
+    @media (min-width: 640px) {
+        .enrolled-grid, .courses-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+    }
+    .course-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        transition: all 0.2s;
+    }
+    .course-code {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--blue);
+        margin-bottom: 4px;
+    }
+    .course-title {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    .course-meta {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .badge {
+        background: rgba(0,180,216,0.15);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        color: var(--blue);
+    }
+    .enrolled-badge {
+        background: rgba(46,213,115,0.15);
+        color: var(--green);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        display: inline-block;
+    }
+    .filter-row {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    @media (min-width: 640px) {
+        .filter-row {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        .filter-row select, .search-input {
+            flex: 1;
+        }
+    }
+    .filter-row select, .search-input {
+        width: 100%;
+        padding: 14px;
+        background: rgba(255,255,255,0.06);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        color: var(--text);
+        font-size: 15px;
+        font-family: inherit;
+        outline: none;
+    }
+    .search-input {
+        margin-bottom: 16px;
+    }
+    .enroll-btn {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--blue);
+        color: white;
+        transition: transform 0.1s;
+    }
+    .enroll-btn:active { transform: scale(0.98); }
+    .enroll-btn.enrolled {
+        background: var(--green);
+        cursor: default;
+        opacity: 0.7;
+    }
+    .empty {
+        text-align: center;
+        padding: 40px;
+        color: var(--muted);
+    }
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--muted);
+    }
+    .alert {
+        background: rgba(46,213,115,0.1);
+        color: var(--green);
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        display: none;
+    }
+    hr {
+        border-color: var(--border);
+        margin: 20px 0;
+    }
+</style>
+
+<div class="container">
+    <!-- Enrolled Courses Section -->
+    <div class="section-card">
+        <div class="section-title">📚 My Enrolled Courses</div>
+        {% if enrolled_courses %}
+        <div class="enrolled-grid">
+            {% for course in enrolled_courses %}
+            <div class="course-card">
+                <div class="course-code">{{ course.code }}</div>
+                <div class="course-title">{{ course.title }}</div>
+                <div class="course-meta">
+                    <span class="badge">{{ course.department.name }}</span>
+                    <span class="badge">Level {{ course.level }}</span>
+                    <span class="badge">Semester {{ course.semester }}</span>
+                </div>
+                <div class="enrolled-badge">✅ Enrolled</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty">You haven't enrolled in any courses yet. Use the section below to browse and enroll.</div>
+        {% endif %}
+    </div>
+
+    <!-- Browse & Enroll Section -->
+    <div class="section-card">
+        <div class="section-title">🔍 Browse & Enroll in More Courses</div>
+        
+        <div class="filter-row">
+            <select id="facultySelect">
+                <option value="">-- Select Faculty --</option>
+                {% for faculty in faculties %}
+                <option value="{{ faculty.id }}">{{ faculty.name }}</option>
+                {% endfor %}
+            </select>
+            <select id="departmentSelect" disabled>
+                <option value="">-- Select Department --</option>
+            </select>
+            <select id="levelSelect" disabled>
+                <option value="">-- Select Level --</option>
+            </select>
+        </div>
+        <input type="text" id="searchInput" class="search-input" placeholder="🔎 Search by course code or title...">
+        <div id="alertBox" class="alert"></div>
+        
+        <div id="coursesContainer">
+            <div class="empty">Select a faculty, department and level to see available courses.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const facultySelect = document.getElementById('facultySelect');
+    const deptSelect = document.getElementById('departmentSelect');
+    const levelSelect = document.getElementById('levelSelect');
+    const searchInput = document.getElementById('searchInput');
+    const coursesContainer = document.getElementById('coursesContainer');
+    const alertBox = document.getElementById('alertBox');
+
+    let allCourses = [];
+    let enrolledIds = {{ enrolled_ids | tojson }};
+
+    // Load departments when faculty changes
+    facultySelect.addEventListener('change', async () => {
+        const facultyId = facultySelect.value;
+        deptSelect.innerHTML = '<option value="">-- Select Department --</option>';
+        levelSelect.innerHTML = '<option value="">-- Select Level --</option>';
+        levelSelect.disabled = true;
+        deptSelect.disabled = true;
+        if (!facultyId) {
+            coursesContainer.innerHTML = '<div class="empty">Select a faculty to continue.</div>';
+            return;
+        }
+        const res = await fetch(`/api/departments/${facultyId}`);
+        const depts = await res.json();
+        depts.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept.id;
+            option.textContent = dept.name;
+            deptSelect.appendChild(option);
+        });
+        deptSelect.disabled = false;
+        coursesContainer.innerHTML = '<div class="empty">Select a department and level.</div>';
+    });
+
+    // Load levels when department changes
+    deptSelect.addEventListener('change', async () => {
+        const deptId = deptSelect.value;
+        levelSelect.innerHTML = '<option value="">-- Select Level --</option>';
+        levelSelect.disabled = true;
+        if (!deptId) {
+            coursesContainer.innerHTML = '<div class="empty">Select a department first.</div>';
+            return;
+        }
+        const res = await fetch(`/api/levels/${deptId}`);
+        const levels = await res.json();
+        if (levels.length === 0) {
+            coursesContainer.innerHTML = '<div class="empty">No courses found for this department.</div>';
+            return;
+        }
+        levels.forEach(level => {
+            const option = document.createElement('option');
+            option.value = level;
+            option.textContent = `${level} Level`;
+            levelSelect.appendChild(option);
+        });
+        levelSelect.disabled = false;
+        coursesContainer.innerHTML = '<div class="empty">Select a level to view courses.</div>';
+    });
+
+    // Load courses when level changes
+    levelSelect.addEventListener('change', async () => {
+        const facultyId = facultySelect.value;
+        const deptId = deptSelect.value;
+        const level = levelSelect.value;
+        if (!facultyId || !deptId || !level) return;
+        
+        coursesContainer.innerHTML = '<div class="loading">Loading courses...</div>';
+        const url = `/api/all_courses?faculty_id=${facultyId}&department_id=${deptId}&level=${level}`;
+        const res = await fetch(url);
+        const courses = await res.json();
+        allCourses = courses;
+        renderCourses(allCourses);
+    });
+
+    // Search filter
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase();
+        const filtered = allCourses.filter(c => 
+            c.code.toLowerCase().includes(query) || 
+            c.title.toLowerCase().includes(query)
+        );
+        renderCourses(filtered);
+    });
+
+    function renderCourses(courses) {
+        if (!courses.length) {
+            coursesContainer.innerHTML = '<div class="empty">No courses match your selection.</div>';
+            return;
+        }
+        coursesContainer.innerHTML = `<div class="courses-grid">${courses.map(course => `
+            <div class="course-card" data-course-id="${course.id}">
+                <div class="course-code">${course.code}</div>
+                <div class="course-title">${course.title}</div>
+                <div class="course-meta">
+                    <span class="badge">${course.department}</span>
+                    <span class="badge">Level ${course.level}</span>
+                    <span class="badge">Semester ${course.semester}</span>
+                </div>
+                <button class="enroll-btn ${enrolledIds.includes(course.id) ? 'enrolled' : ''}" 
+                        data-id="${course.id}" 
+                        ${enrolledIds.includes(course.id) ? 'disabled' : ''}>
+                    ${enrolledIds.includes(course.id) ? '✅ Enrolled' : '➕ Enroll'}
+                </button>
+            </div>
+        `).join('')}</div>`;
+
+        // Attach event listeners to enroll buttons
+        document.querySelectorAll('.enroll-btn:not(.enrolled)').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const courseId = parseInt(btn.dataset.id);
+                const res = await fetch('/enroll_course', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ course_id: courseId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alertBox.textContent = data.message;
+                    alertBox.style.display = 'block';
+                    setTimeout(() => alertBox.style.display = 'none', 3000);
+                    // Update button
+                    btn.textContent = '✅ Enrolled';
+                    btn.classList.add('enrolled');
+                    btn.disabled = true;
+                    enrolledIds.push(courseId);
+                    // Optionally refresh the enrolled courses list (reload page)
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    alert(data.message);
+                }
+            });
+        });
+    }
+</script>
+{% endblock %}

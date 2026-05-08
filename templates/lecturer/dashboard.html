@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+{% block title %}Lecturer Dashboard – Session Control{% endblock %}
+{% block content %}
+<style>
+    .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+    /* ── Greeting ── */
+    .welcome {
+        background: linear-gradient(135deg, rgba(0,180,216,0.12), rgba(0,180,216,0.03));
+        border: 1px solid rgba(0,180,216,0.2);
+        border-radius: 18px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: box-shadow 0.3s;
+    }
+    .welcome:hover { box-shadow: 0 0 20px rgba(0,180,216,0.1); }
+    .welcome h2 { font-size: 22px; font-weight: 700; }
+    .welcome-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .meta-tag {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 4px 12px;
+        font-size: 12px;
+        color: var(--muted);
+    }
+    .meta-tag strong { color: var(--text); }
+
+    /* ── Stats cards ── */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    @media (min-width: 640px) {
+        .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .stat-card {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px 12px;
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.3s;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .stat-card h3 { font-size: 28px; font-weight: 700; color: var(--blue); }
+    .stat-card p { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    /* ── Session control ── */
+    .section-card {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
+        transition: box-shadow 0.3s;
+    }
+    .section-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--blue); }
+
+    .pattern-grid {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 16px 0;
+    }
+    .pattern-btn {
+        flex: 1;
+        min-width: 70px;
+        padding: 10px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--muted);
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s, border-color 0.3s, transform 0.2s;
+    }
+    .pattern-btn:hover { transform: translateY(-2px); border-color: var(--blue); }
+    .pattern-btn.active {
+        background: var(--blue);
+        color: white;
+        border-color: var(--blue);
+        transform: scale(1.05);
+    }
+    .location-box {
+        background: rgba(255,255,255,0.03);
+        padding: 12px;
+        border-radius: 10px;
+        margin: 12px 0;
+        font-size: 13px;
+        transition: background 0.3s;
+    }
+    .location-box:hover { background: rgba(255,255,255,0.06); }
+
+    .btn {
+        padding: 12px 16px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        margin-bottom: 10px;
+        transition: transform 0.1s, box-shadow 0.3s, opacity 0.3s;
+        will-change: transform;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:hover { opacity: 0.9; }
+    .btn-primary { background: var(--blue); color: white; }
+    .btn-success { background: var(--green); color: #0d1117; }
+    .btn-danger { background: var(--red); color: white; }
+    .btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); }
+
+    .alert {
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 10px;
+        display: none;
+        animation: fadeSlideIn 0.3s ease;
+    }
+    @keyframes fadeSlideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .alert.success { background: rgba(46,213,115,0.1); color: var(--green); }
+    .alert.error { background: rgba(233,69,96,0.1); color: var(--red); }
+
+    .session-info-box {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        font-size: 13px;
+        line-height: 2;
+        transition: background 0.3s;
+    }
+    .session-info-box:hover { background: rgba(255,255,255,0.06); }
+    .session-info-box strong { color: var(--text); }
+    .empty { text-align: center; padding: 36px 20px; color: var(--muted); font-size: 13px; }
+
+    /* Dropdown readability */
+    select {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255,255,255,0.06);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 15px;
+        outline: none;
+        transition: border-color 0.3s;
+        margin-bottom: 14px;
+    }
+    select:focus { border-color: var(--blue); }
+    select option { background: #0d1117; color: #f0f6fc; }
+
+    /* Checkbox list */
+    .dept-checklist {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 12px 0;
+        padding: 12px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .dept-checklist label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: var(--text);
+        cursor: pointer;
+        padding: 4px 0;
+        transition: color 0.2s;
+    }
+    .dept-checklist label:hover { color: var(--blue); }
+    .dept-checklist input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--blue);
+    }
+    .select-all-row {
+        font-weight: 600;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+    }
+    .help-text {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: -8px;
+        margin-bottom: 12px;
+    }
+</style>
+
+<div class="container">
+    <!-- Greeting -->
+    <div class="welcome">
+        <h2>Hello, {{ lecturer.full_name }}! 👋</h2>
+        <div class="welcome-meta">
+            <span class="meta-tag">🏫 <strong>{{ lecturer.department_rel.name if lecturer.department_rel else 'No Department' }}</strong></span>
+            <span class="meta-tag">📚 <strong>{{ courses_count }} Course(s)</strong></span>
+            <span class="meta-tag">🧑‍🏫 <strong>Lecturer</strong></span>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card"><h3>{{ total_students }}</h3><p>👥 Students</p></div>
+        <div class="stat-card"><h3>{{ courses_count }}</h3><p>📚 My Courses</p></div>
+        <div class="stat-card"><h3>{{ total_sessions }}</h3><p>📋 Sessions Held</p></div>
+    </div>
+
+    <!-- Session Control -->
+    <div class="section-card">
+        <div class="section-title">🎯 Start / Stop Session</div>
+        <div id="activeSessionBanner" style="display:none; background: rgba(46,213,115,0.1); padding: 10px; border-radius: 8px; margin-bottom: 16px; color: var(--green);">
+            ✅ Active session running – students can mark attendance
+        </div>
+
+        <label>Select course:</label>
+        <select id="sessionCourseSelect" onchange="loadCourseDepartments()">
+            <option value="">-- Select a course --</option>
+            {% for course in my_courses %}
+            <option value="{{ course.id }}">{{ course.code }} - {{ course.title }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Department selection area (hidden until course is chosen) -->
+        <div id="deptSelectionArea" style="display:none;">
+            <label>Select eligible departments:</label>
+            <div id="deptChecklistContainer" class="dept-checklist">
+                <!-- dynamically filled -->
+            </div>
+            <span class="help-text">Choose one or more departments whose students will attend this session.</span>
+        </div>
+
+        <div class="pattern-grid">
+            <button class="pattern-btn active" data-pattern="circle">⭕ Circle</button>
+            <button class="pattern-btn" data-pattern="triangle">🔺 Triangle</button>
+            <button class="pattern-btn" data-pattern="square">🟦 Square</button>
+            <button class="pattern-btn" data-pattern="star">⭐ Star</button>
+            <button class="pattern-btn" data-pattern="zigzag">〰️ Zigzag</button>
+        </div>
+
+        <div class="location-box" id="locationBox">📍 Location: Not captured yet</div>
+        <button class="btn btn-primary" id="captureLocationBtn">📍 Capture My Location</button>
+        <button class="btn btn-success" id="startSessionBtn">▶️ Start Session</button>
+        <button class="btn btn-danger" id="stopSessionBtn">⏹️ Stop Session</button>
+        <button class="btn btn-ghost" id="markAbsentBtn">📝 Mark Absentees & Notify Parents</button>
+        <div class="alert" id="sessionAlert"></div>
+    </div>
+
+    <!-- Active Session Info -->
+    <div class="section-card">
+        <div class="section-title">📊 Active Session Info</div>
+        <div id="sessionInfoBox">
+            <div class="empty">No active session.<br>Start one to see info here.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedPattern = 'circle';
+    let lecturerLat = null, lecturerLng = null;
+
+    // Pattern selection
+    document.querySelectorAll('.pattern-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedPattern = btn.dataset.pattern;
+        });
+    });
+
+    // Load departments when course changes (checkboxes)
+    async function loadCourseDepartments() {
+        const courseId = document.getElementById('sessionCourseSelect').value;
+        const deptArea = document.getElementById('deptSelectionArea');
+        const container = document.getElementById('deptChecklistContainer');
+
+        // Hide area and clear if no course selected
+        if (!courseId) {
+            deptArea.style.display = 'none';
+            container.innerHTML = '';
+            return;
+        }
+
+        deptArea.style.display = 'none'; // hide while loading
+        container.innerHTML = '<div class="empty" style="padding:10px;">Loading departments...</div>';
+
+        const res = await fetch(`/api/course_departments/${courseId}`);
+        const departments = await res.json();
+
+        if (departments.length === 0) {
+            container.innerHTML = '<div class="empty" style="padding:10px;">No departments have students enrolled in this course.</div>';
+            deptArea.style.display = 'block';
+            return;
+        }
+
+        let html = `
+            <label class="select-all-row">
+                <input type="checkbox" id="selectAllDepts" onchange="toggleAllDepts(this)">
+                <strong>Select All Departments</strong>
+            </label>`;
+        departments.forEach(d => {
+            html += `
+                <label>
+                    <input type="checkbox" class="dept-checkbox" value="${d.id}" data-name="${d.name}">
+                    ${d.name}
+                </label>`;
+        });
+        container.innerHTML = html;
+        deptArea.style.display = 'block';
+    }
+
+    // Select/Deselect all
+    function toggleAllDepts(selectAllCheckbox) {
+        const checkboxes = document.querySelectorAll('.dept-checkbox');
+        checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+    }
+
+    // Get checked department IDs
+    function getSelectedDepartments() {
+        const checkboxes = document.querySelectorAll('.dept-checkbox:checked');
+        return Array.from(checkboxes).map(cb => parseInt(cb.value));
+    }
+
+    // Capture location with detailed error reporting
+    document.getElementById('captureLocationBtn').addEventListener('click', () => {
+        const locBox = document.getElementById('locationBox');
+        locBox.textContent = '📍 Capturing...';
+
+        // Check if geolocation is supported
+        if (!navigator.geolocation) {
+            locBox.textContent = '❌ Geolocation is not supported by this browser.';
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            // Success callback
+            pos => {
+                lecturerLat = pos.coords.latitude;
+                lecturerLng = pos.coords.longitude;
+                locBox.textContent = `📍 Location: (${lecturerLat.toFixed(5)}, ${lecturerLng.toFixed(5)}) ±${Math.round(pos.coords.accuracy)}m`;
+                showAlert('sessionAlert', 'Location captured!', 'success');
+            },
+            // Error callback – show exact reason
+            err => {
+                let msg = '❌ ';
+                switch(err.code) {
+                    case err.PERMISSION_DENIED:
+                        msg += 'Permission denied. Please allow location access in your browser settings.';
+                        break;
+                    case err.POSITION_UNAVAILABLE:
+                        msg += 'Position unavailable. Try again or check your device\'s location services.';
+                        break;
+                    case err.TIMEOUT:
+                        msg += 'Request timed out. Please try again.';
+                        break;
+                    default:
+                        msg += 'Unknown error.';
+                }
+                locBox.textContent = msg;
+                console.error('Geolocation error:', err);
+            },
+            // Options
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+    });
+
+    // Start session
+    document.getElementById('startSessionBtn').addEventListener('click', async () => {
+        if (!lecturerLat || !lecturerLng) { showAlert('sessionAlert', 'Capture location first!', 'error'); return; }
+        const courseId = document.getElementById('sessionCourseSelect').value;
+        if (!courseId) { showAlert('sessionAlert', 'Select a course', 'error'); return; }
+
+        const selectedDepts = getSelectedDepartments();
+        if (selectedDepts.length === 0) { showAlert('sessionAlert', 'Select at least one department', 'error'); return; }
+
+        const res = await fetch('/lecturer/set_session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                pattern: selectedPattern,
+                lat: lecturerLat,
+                lng: lecturerLng,
+                course_id: parseInt(courseId),
+                department_ids: selectedDepts
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAlert('sessionAlert', 'Session started!', 'success');
+            document.getElementById('activeSessionBanner').style.display = 'block';
+            document.getElementById('sessionInfoBox').innerHTML = `
+                <div class="session-info-box">
+                    <div>🎨 Pattern: <strong>${selectedPattern.toUpperCase()}</strong></div>
+                    <div>📍 Lat: <strong>${lecturerLat.toFixed(5)}</strong></div>
+                    <div>📍 Lng: <strong>${lecturerLng.toFixed(5)}</strong></div>
+                    <div>📏 Radius: <strong>50 metres</strong></div>
+                    <div>⏱️ Started: <strong>${new Date().toLocaleTimeString()}</strong></div>
+                </div>`;
+        } else {
+            showAlert('sessionAlert', data.message || 'Failed to start session', 'error');
+        }
+    });
+
+    // Stop session
+    document.getElementById('stopSessionBtn').addEventListener('click', async () => {
+        const res = await fetch('/lecturer/set_session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pattern: null, lat: null, lng: null })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAlert('sessionAlert', 'Session stopped', 'error');
+            document.getElementById('activeSessionBanner').style.display = 'none';
+            document.getElementById('sessionInfoBox').innerHTML = '<div class="empty">No active session.<br>Start one to see info here.</div>';
+            lecturerLat = null; lecturerLng = null;
+        }
+    });
+
+    // Mark absent
+    document.getElementById('markAbsentBtn').addEventListener('click', async () => {
+        if (!confirm('Mark all students who haven\'t marked as ABSENT and notify parents?')) return;
+        const res = await fetch('/lecturer/mark_absent', { method: 'POST' });
+        const data = await res.json();
+        showAlert('sessionAlert', data.message, data.success ? 'success' : 'error');
+    });
+
+    function showAlert(id, msg, type) {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.className = `alert ${type}`;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 4000);
+    }
+</script>
+{% endblock %}
