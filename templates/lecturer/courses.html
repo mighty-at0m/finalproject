@@ -56,6 +56,7 @@
     let myCourses = [];
 
     async function loadMyCourses() {
+        showLoader('myCoursesList');
         const res = await fetch('/lecturer/my_courses');
         const data = await res.json();
         if (data.success) {
@@ -73,11 +74,7 @@
 
     async function removeCourse(courseId) {
         if (!confirm('Remove this course?')) return;
-        const res = await fetch('/lecturer/remove_course', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ course_id: courseId })
-        });
+        const res = await fetch('/lecturer/remove_course', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ course_id: courseId }) });
         const data = await res.json();
         alert(data.message);
         if (data.success) loadMyCourses();
@@ -122,6 +119,7 @@
         const did = document.getElementById('deptSelect').value;
         const level = document.getElementById('levelSelect').value;
         if (!fid || !did || !level) { document.getElementById('availableCoursesList').innerHTML = ''; return; }
+        showLoader('availableCoursesList');
         const url = `/api/all_courses?faculty_id=${fid}&department_id=${did}&level=${level}`;
         const res = await fetch(url);
         let courses = await res.json();
@@ -140,11 +138,7 @@
     }
 
     async function addCourse(courseId) {
-        const res = await fetch('/lecturer/add_course', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ course_id: courseId })
-        });
+        const res = await fetch('/lecturer/add_course', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ course_id: courseId }) });
         const data = await res.json();
         alert(data.message);
         if (data.success) { loadMyCourses(); loadAvailableCourses(); }

@@ -370,7 +370,7 @@
                 studentLat = pos.coords.latitude;
                 studentLng = pos.coords.longitude;
                 const dist = getDistance(pos.coords.latitude, pos.coords.longitude, data.lat, data.lng);
-                locationValid = dist <= 50;
+                locationValid = dist <= 100;
                 locBadge.className = 'badge ' + (locationValid ? 'valid' : 'invalid');
                 locBadge.textContent = locationValid ? '✅ Within Range' : `❌ ${Math.round(dist)}m Away`;
             }, () => {

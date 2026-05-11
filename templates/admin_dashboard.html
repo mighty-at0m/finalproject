@@ -21,16 +21,13 @@
         .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
         .tab-content{display:none;padding:16px;max-width:1100px;margin:0 auto;padding-bottom:80px}
         .tab-content.active{display:block}
-        /* Stats */
         .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
         @media(min-width:480px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
         .stat-card{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:16px 12px;text-align:center}
         .stat-card h3{font-size:28px;font-weight:700;color:var(--gold)}
         .stat-card p{font-size:11px;color:var(--muted);margin-top:4px}
-        /* Cards */
         .card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px}
         .card-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px}
-        /* Forms */
         .form-row{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px}
         @media(min-width:480px){.form-row{grid-template-columns:1fr 1fr}}
         .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
@@ -46,20 +43,16 @@
         .btn-blue{background:linear-gradient(135deg,var(--blue),#48cae4);color:white}
         .btn-sm{padding:5px 10px;font-size:11px;border-radius:7px}
         .btn-full{width:100%}
-        /* Alert */
         .alert{padding:10px 14px;border-radius:10px;font-size:13px;margin-top:8px;display:none;font-weight:600;text-align:center}
         .alert.success{background:rgba(46,213,115,0.1);color:var(--green);border:1px solid rgba(46,213,115,0.2)}
         .alert.error{background:rgba(233,69,96,0.1);color:var(--red);border:1px solid rgba(233,69,96,0.2)}
-        /* Filter */
         .filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
         .filter-bar input,.filter-bar select{flex:1;min-width:130px;margin:0}
-        /* Tables / cards */
         .item-list{display:flex;flex-direction:column;gap:8px}
         .item-row{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:11px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
         .item-name{font-size:14px;font-weight:600}
         .item-sub{font-size:12px;color:var(--muted);margin-top:2px}
         .item-actions{display:flex;gap:6px;flex-shrink:0}
-        /* Desktop table */
         .desktop-table{display:none;overflow-x:auto}
         @media(min-width:700px){.desktop-table{display:block}.item-list.mobile-only{display:none}}
         table{width:100%;border-collapse:collapse;min-width:500px}
@@ -73,6 +66,17 @@
         .empty{text-align:center;padding:30px;color:var(--muted);font-size:13px}
         .two-col{display:grid;grid-template-columns:1fr;gap:14px}
         @media(min-width:640px){.two-col{grid-template-columns:1fr 1fr}}
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center;
+        }
+        .modal {
+            background: var(--bg1); border: 1px solid var(--border); border-radius: 16px;
+            padding: 24px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto;
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -108,13 +112,6 @@
             {% for s in students %}{% set atts = s.attendances %}{% set total_att.val = total_att.val + atts|length %}{% endfor %}
             {{ total_att.val }}
         </h3><p>Total Attendance Records</p></div>
-    </div>
-    <div class="card">
-        <div class="card-title">⚡ Quick Actions</div>
-        <div class="two-col">
-            <button class="btn btn-gold btn-full" onclick="switchTab('courses', document.querySelectorAll('.tab')[3])">📚 Add New Course</button>
-            <button class="btn btn-blue btn-full" onclick="switchTab('students', document.querySelectorAll('.tab')[4])">🎓 Manage Students</button>
-        </div>
     </div>
 </div>
 
@@ -347,7 +344,10 @@
                         {% for lc in l.lecturer_courses %}<span class="badge info">{{ lc.course.code }}</span>{% endfor %}
                     </div>
                 </div>
-                <button class="btn btn-red btn-sm" onclick="adminDeleteLecturer({{ l.id }},'{{ l.full_name }}')">🗑️</button>
+                <div class="item-actions">
+                    <button class="btn btn-gold btn-sm" onclick="openAssignCourseModal({{ l.id }}, '{{ l.full_name }}')">📚 Courses</button>
+                    <button class="btn btn-red btn-sm" onclick="adminDeleteLecturer({{ l.id }},'{{ l.full_name }}')">🗑️</button>
+                </div>
             </div>
             {% else %}
             <div class="empty">No lecturers registered</div>
@@ -356,7 +356,7 @@
         <!-- Desktop -->
         <div class="desktop-table">
             <table>
-                <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Courses</th><th>Action</th></tr></thead>
+                <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Courses</th><th>Actions</th></tr></thead>
                 <tbody id="lecturers_table">
                     {% for l in lecturers %}
                     <tr class="lecturer-row" data-name="{{ l.full_name|lower }}" data-email="{{ l.email|lower }}">
@@ -366,7 +366,10 @@
                         <td>
                             {% for lc in l.lecturer_courses %}<span class="badge info" style="margin-right:3px">{{ lc.course.code }}</span>{% endfor %}
                         </td>
-                        <td><button class="btn btn-red btn-sm" onclick="adminDeleteLecturer({{ l.id }},'{{ l.full_name }}')">🗑️ Delete</button></td>
+                        <td>
+                            <button class="btn btn-gold btn-sm" onclick="openAssignCourseModal({{ l.id }}, '{{ l.full_name }}')">📚 Courses</button>
+                            <button class="btn btn-red btn-sm" onclick="adminDeleteLecturer({{ l.id }},'{{ l.full_name }}')">🗑️</button>
+                        </td>
                     </tr>
                     {% else %}
                     <tr><td colspan="5" class="empty">No lecturers registered</td></tr>
@@ -374,6 +377,22 @@
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<!-- Assign Course Modal -->
+<div class="modal-overlay" id="assignModal" style="display:none;">
+    <div class="modal">
+        <button style="position:absolute; top:12px; right:12px; background:none; border:1px solid var(--border); color:var(--text); border-radius:8px; padding:6px 10px; cursor:pointer;" onclick="closeAssignModal()">✕</button>
+        <h2 id="assignLecturerName"></h2>
+        <div id="assignCoursesList" style="margin:12px 0;"></div>
+        <hr style="border-color:var(--border); margin:16px 0;">
+        <div class="card-title">Assign new course</div>
+        <select id="assignFacultySelect"><option value="">-- Faculty --</option></select>
+        <select id="assignDeptSelect" disabled><option value="">-- Department --</option></select>
+        <select id="assignLevelSelect" disabled><option value="">-- Level --</option></select>
+        <div id="availableCoursesAssign" style="margin-top:10px;"></div>
+        <div class="alert" id="assignAlert"></div>
     </div>
 </div>
 
@@ -507,6 +526,110 @@ function filterList(inputId, listId, cls) {
         row.style.display = row.querySelector('.'+cls).textContent.toLowerCase().includes(q) ? '' : 'none';
     });
 }
+
+// ── LECTURER COURSE ASSIGNMENT ──
+let currentLecturerId = null;
+
+async function openAssignCourseModal(lecturerId, name) {
+    currentLecturerId = lecturerId;
+    document.getElementById('assignLecturerName').textContent = '📚 Courses for ' + name;
+    document.getElementById('assignModal').style.display = 'flex';
+    // Load assigned courses
+    const res = await fetch('/admin/lecturer_courses/' + lecturerId);
+    const data = await res.json();
+    let html = '<strong>Currently assigned:</strong> ';
+    if(data.success && data.courses.length > 0) {
+        html += data.courses.map(c => `<span class="badge info" style="margin:2px;">${c.code} <button onclick="removeLecturerCourse(${c.id})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;margin-left:4px;">×</button></span>`).join('');
+    } else {
+        html += 'None';
+    }
+    document.getElementById('assignCoursesList').innerHTML = html;
+    // Load all courses for assignment
+    loadAssignFaculties();
+}
+
+function closeAssignModal() {
+    document.getElementById('assignModal').style.display = 'none';
+}
+
+async function loadAssignFaculties() {
+    const res = await fetch('/api/faculties');
+    const faculties = await res.json();
+    const select = document.getElementById('assignFacultySelect');
+    select.innerHTML = '<option value="">-- Faculty --</option>';
+    faculties.forEach(f => { const o = document.createElement('option'); o.value = f.id; o.textContent = f.name; select.appendChild(o); });
+}
+
+document.getElementById('assignFacultySelect').addEventListener('change', async (e) => {
+    const fid = e.target.value;
+    const deptSelect = document.getElementById('assignDeptSelect');
+    deptSelect.innerHTML = '<option value="">-- Department --</option>';
+    deptSelect.disabled = true;
+    document.getElementById('assignLevelSelect').innerHTML = '<option value="">-- Level --</option>';
+    document.getElementById('assignLevelSelect').disabled = true;
+    if(!fid) return;
+    const res = await fetch('/api/departments/'+fid);
+    const depts = await res.json();
+    depts.forEach(d => { const o = document.createElement('option'); o.value = d.id; o.textContent = d.name; deptSelect.appendChild(o); });
+    deptSelect.disabled = false;
+});
+
+document.getElementById('assignDeptSelect').addEventListener('change', async (e) => {
+    const did = e.target.value;
+    const levelSelect = document.getElementById('assignLevelSelect');
+    levelSelect.innerHTML = '<option value="">-- Level --</option>';
+    levelSelect.disabled = true;
+    if(!did) return;
+    const res = await fetch('/api/levels/'+did);
+    const levels = await res.json();
+    levels.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l + ' Level'; levelSelect.appendChild(o); });
+    levelSelect.disabled = false;
+});
+
+document.getElementById('assignLevelSelect').addEventListener('change', loadAssignCourses);
+
+async function loadAssignCourses() {
+    const fid = document.getElementById('assignFacultySelect').value;
+    const did = document.getElementById('assignDeptSelect').value;
+    const level = document.getElementById('assignLevelSelect').value;
+    if(!fid || !did || !level) return;
+    const url = `/api/all_courses?faculty_id=${fid}&department_id=${did}&level=${level}`;
+    const res = await fetch(url);
+    const courses = await res.json();
+    const container = document.getElementById('availableCoursesAssign');
+    if(courses.length === 0) {
+        container.innerHTML = '<div class="empty">No courses found</div>';
+        return;
+    }
+    container.innerHTML = courses.map(c => `<div class="item-row"><div><span class="item-name">${c.code}</span> - ${c.title}</div><button class="btn btn-gold btn-sm" onclick="assignLecturerCourse(${c.id})">Assign</button></div>`).join('');
+}
+
+async function assignLecturerCourse(courseId) {
+    const res = await fetch('/admin/assign_lecturer_course', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ lecturer_id: currentLecturerId, course_id: courseId })
+    });
+    const data = await res.json();
+    showAlert('assignAlert', data.message, data.success ? 'success' : 'error');
+    if(data.success) openAssignCourseModal(currentLecturerId, document.getElementById('assignLecturerName').textContent.replace('📚 Courses for ', ''));
+}
+
+async function removeLecturerCourse(courseId) {
+    const res = await fetch('/admin/remove_lecturer_course', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ lecturer_id: currentLecturerId, course_id: courseId })
+    });
+    const data = await res.json();
+    showAlert('assignAlert', data.message, data.success ? 'success' : 'error');
+    if(data.success) openAssignCourseModal(currentLecturerId, document.getElementById('assignLecturerName').textContent.replace('📚 Courses for ', ''));
+}
+
+// Close modal on overlay click
+document.getElementById('assignModal').addEventListener('click', function(e) {
+    if(e.target === this) closeAssignModal();
+});
 </script>
 </body>
 </html>

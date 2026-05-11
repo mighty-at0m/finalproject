@@ -48,8 +48,8 @@
 </div>
 
 <div class="stats-grid">
-    <div class="stat-card"><h3>{{ attendances | length }}</h3><p>Total Sessions</p></div>
-    <div class="stat-card"><h3 style="color:var(--green)">{{ attendances | selectattr('status','equalto','present') | list | length }}</h3><p>Present</p></div>
+    <div class="stat-card"><h3>{{ total_eligible_sessions }}</h3><p>Total Sessions</p></div>
+    <div class="stat-card"><h3 style="color:var(--green)">{{ total_present_overall }}</h3><p>Present</p></div>
     <div class="stat-card"><h3>{{ course_stats | length }}</h3><p>Courses Enrolled</p></div>
 </div>
 
@@ -70,7 +70,7 @@
             <span>✅ {{ stats.present }} present</span>
             <span>❌ {{ stats.absent }} absent</span>
         </div>
-        <div class="mini-progress"><div class="mini-fill" style="width:{{ stats.rate }}%"></div></div>
+        <div class="mini-progress"><div class="mini-fill" style="width:{{ stats.rate }}%;background:{% if stats.rate >= 75 %}linear-gradient(90deg,var(--blue),var(--green)){% elif stats.rate >= 50 %}#ffa502{% else %}var(--red){% endif %}"></div></div>
     </a>
     {% endfor %}
 </div>

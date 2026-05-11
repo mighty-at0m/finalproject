@@ -161,7 +161,7 @@
             return;
         }
         currentCourseId = courseId;
-        document.getElementById('studentsContainer').innerHTML = '<div class="empty">Loading...</div>';
+        showLoader('studentsContainer');
         const res = await fetch(`/lecturer/enrolled_students/${courseId}`);
         const data = await res.json();
         if (!data.success) {
@@ -189,6 +189,7 @@
                 <button class="btn-sm" onclick="showStudentDetails(${s.id})">View Details</button>
             </div>
         `).join('') + '</div>';
+        container.innerHTML = html;
 
         if (window.innerWidth >= 768) {
             container.innerHTML = `<div class="table-wrapper"><table>

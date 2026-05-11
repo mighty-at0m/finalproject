@@ -6,11 +6,22 @@ TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
 TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '')
 
+def validate_twilio_config():
+    """Validate Twilio config and return (ok, detail)."""
+    if not TWILIO_ACCOUNT_SID:
+        return False, "Twilio not configured: missing TWILIO_ACCOUNT_SID"
+    if not TWILIO_AUTH_TOKEN:
+        return False, "Twilio not configured: missing TWILIO_AUTH_TOKEN"
+    if not TWILIO_PHONE_NUMBER:
+        return False, "Twilio not configured: missing TWILIO_PHONE_NUMBER"
+    return True, "Configured"
+
 def send_sms(to_phone, message):
     """Send SMS – returns (success, message_or_sid)"""
-    if not TWILIO_ACCOUNT_SID:
-        print("⚠️ Twilio not configured – SMS would be sent:", message)
-        return True, "Simulated (no credentials)"
+    ok, detail = validate_twilio_config()
+    if not ok:
+        print(f"⚠️ {detail}")
+        return False, detail
     try:
         if to_phone.startswith('0'):
             to_phone = '+234' + to_phone[1:]
@@ -26,8 +37,17 @@ def send_sms(to_phone, message):
         print(f"SMS sent to {to_phone}: {msg.sid}")
         return True, msg.sid
     except Exception as e:
-        print(f"SMS failed: {str(e)}")
-        return False, str(e)
+        raw = str(e)
+        if '20003' in raw or 'Authenticate' in raw:
+            friendly = 'Twilio authentication failed (error 20003). Check TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN.'
+        elif '21211' in raw:
+            friendly = 'Invalid destination phone number format (error 21211).'
+        elif '21606' in raw:
+            friendly = 'The Twilio number cannot send to this destination (error 21606).'
+        else:
+            friendly = f"Twilio send failed: {raw}"
+        print(f"SMS failed: {friendly}")
+        return False, friendly
 
 def send_attendance_alert(student_name, parent_phone, course, status, timestamp):
     """Send attendance notification to parent."""

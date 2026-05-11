@@ -145,7 +145,7 @@
                 <label>Password</label>
                 <input type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
             </div>
-            <input type="hidden" name="device_hash" id="device_hash">
+            <input type="hidden" name="device_token" id="device_token">
             <button type="submit" class="btn">Login</button>
         </form>
         <div class="divider"></div>
@@ -157,13 +157,9 @@
         </div>
     </div>
     <script>
-        function getDeviceHash() {
-            const data = navigator.userAgent + screen.width + screen.height + navigator.language + navigator.platform;
-            let hash = 0;
-            for (let i = 0; i < data.length; i++) { hash = ((hash << 5) - hash) + data.charCodeAt(i); hash |= 0; }
-            return Math.abs(hash).toString(16);
-        }
-        document.getElementById('device_hash').value = getDeviceHash();
+        // Try to read the device token from localStorage
+        const storedToken = localStorage.getItem('device_token') || '';
+        document.getElementById('device_token').value = storedToken;
     </script>
 </body>
 </html>

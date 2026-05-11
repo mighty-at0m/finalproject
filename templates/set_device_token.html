@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Setting up device</title>
+</head>
+<body>
+    <script>
+        // Store the token in the browser
+        localStorage.setItem('device_token', '{{ token }}');
+        // Redirect to the next page (dashboard)
+        window.location.href = '{{ redirect }}';
+    </script>
+</body>
+</html>

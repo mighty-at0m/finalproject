@@ -68,6 +68,7 @@ class Student(db.Model):
     password = db.Column(db.String(200), nullable=False)
     parent_phone = db.Column(db.String(15), nullable=False)
     device_hash = db.Column(db.String(200), nullable=True)
+    device_token = db.Column(db.String(128), nullable=True)   # new token for device binding
     assigned_pattern = db.Column(db.String(20), default='circle')
     faculty_id = db.Column(db.Integer, db.ForeignKey('faculties.id'), nullable=True)
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
