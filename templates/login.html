@@ -1,165 +1,576 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Smart Attendance - Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --red: #e94560;
-            --red-dark: #c73652;
-            --bg1: #0d1117;
-            --bg2: #161b22;
-            --glass: rgba(255,255,255,0.04);
-            --border: rgba(255,255,255,0.08);
-            --text: #f0f6fc;
-            --muted: rgba(240,246,252,0.5);
+      :root {
+        --red: #e94560;
+        --red-dark: #c73652;
+        --bg1: #0d1117;
+        --bg2: #161b22;
+        --glass: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #f0f6fc;
+        --muted: rgba(240, 246, 252, 0.5);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        height: 100%;
+        font-family: "Space Grotesk", sans-serif;
+        background: var(--bg1);
+        color: var(--text);
+        overflow-x: hidden;
+      }
+      body {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 16px;
+        background:
+          radial-gradient(
+            ellipse at top left,
+            rgba(233, 69, 96, 0.12) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse at bottom right,
+            rgba(15, 52, 96, 0.3) 0%,
+            transparent 60%
+          ),
+          var(--bg1);
+        position: relative;
+        background-size:
+          140% 140%,
+          140% 140%,
+          auto;
+        animation: bgFloat 16s ease-in-out infinite;
+      }
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        filter: blur(40px);
+        z-index: 0;
+        pointer-events: none;
+        animation: drift 11s ease-in-out infinite;
+        will-change: transform, opacity;
+      }
+      #particle-network {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.5;
+      }
+      body::before {
+        top: -80px;
+        left: -80px;
+        background: rgba(233, 69, 96, 0.18);
+      }
+      body::after {
+        right: -100px;
+        bottom: -100px;
+        background: rgba(0, 180, 216, 0.14);
+        animation-delay: -4s;
+      }
+      .container {
+        width: 100%;
+        max-width: 420px;
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 36px 28px;
+        backdrop-filter: blur(20px);
+        position: relative;
+        z-index: 1;
+        animation: floatIn 0.7s ease both;
+        overflow: hidden;
+      }
+      .container::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        border-radius: inherit;
+        padding: 1px;
+        background: linear-gradient(
+          120deg,
+          rgba(255, 255, 255, 0.34),
+          rgba(233, 69, 96, 0.34),
+          rgba(0, 180, 216, 0.24),
+          rgba(255, 255, 255, 0.28)
+        );
+        background-size: 220% 220%;
+        animation: borderFlow 7s linear infinite;
+        -webkit-mask:
+          linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+      .container::after {
+        content: "";
+        position: absolute;
+        top: -120%;
+        left: -30%;
+        width: 60%;
+        height: 260%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transform: rotate(18deg);
+        animation: sheen 5.8s ease-in-out infinite;
+        pointer-events: none;
+      }
+      .logo {
+        text-align: center;
+        margin-bottom: 32px;
+        animation: fadeUp 0.5s ease both;
+      }
+      .logo-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, var(--red), #ff6b6b);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin: 0 auto 16px;
+        box-shadow: 0 8px 32px rgba(233, 69, 96, 0.3);
+        animation: iconPulse 3.2s ease-in-out infinite;
+        position: relative;
+        isolation: isolate;
+        will-change: transform, box-shadow;
+      }
+      .logo-icon::before,
+      .logo-icon::after {
+        content: "";
+        position: absolute;
+        inset: -8px;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        opacity: 0;
+        pointer-events: none;
+        animation: ringPulse 2.8s ease-out infinite;
+      }
+      .logo-icon::after {
+        inset: -16px;
+        border-color: rgba(233, 69, 96, 0.35);
+        animation-delay: 1.2s;
+      }
+      .logo h1 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .logo p {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .form-group {
+        margin-bottom: 18px;
+      }
+      .form-group {
+        opacity: 0;
+        transform: translateY(8px);
+        animation: fadeUp 0.45s ease forwards;
+      }
+      .form-group:nth-child(1) {
+        animation-delay: 0.16s;
+      }
+      .form-group:nth-child(2) {
+        animation-delay: 0.24s;
+      }
+      label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 8px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      input {
+        width: 100%;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        color: var(--text);
+        font-size: 16px; /* prevents zoom on iOS */
+        font-family: inherit;
+        outline: none;
+        transition:
+          border-color 0.22s,
+          background 0.22s,
+          transform 0.22s,
+          box-shadow 0.22s;
+        -webkit-appearance: none;
+      }
+      input:focus {
+        border-color: var(--red);
+        background: rgba(233, 69, 96, 0.06);
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(233, 69, 96, 0.14);
+      }
+      input::placeholder {
+        color: rgba(255, 255, 255, 0.2);
+      }
+      .btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--red), #ff6b6b);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        transition:
+          transform 0.18s,
+          box-shadow 0.22s,
+          filter 0.2s;
+        box-shadow: 0 4px 20px rgba(233, 69, 96, 0.35);
+        margin-top: 8px;
+        letter-spacing: 0.02em;
+        animation: fadeUp 0.45s ease both;
+        animation-delay: 0.3s;
+        position: relative;
+        overflow: hidden;
+      }
+      .btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 120%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.26),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+      .btn:hover::before {
+        left: 120%;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 26px rgba(233, 69, 96, 0.42);
+        filter: brightness(1.03);
+      }
+      .btn:active {
+        transform: scale(0.98);
+      }
+      .error {
+        background: rgba(233, 69, 96, 0.1);
+        border: 1px solid rgba(233, 69, 96, 0.3);
+        color: #ff8099;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 24px 0;
+      }
+      .link {
+        text-align: center;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .link a {
+        color: var(--red);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .portal-switch {
+        text-align: center;
+        margin-top: 16px;
+      }
+      .portal-switch a {
+        font-size: 13px;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 8px 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        display: inline-block;
+        transition: border-color 0.2s;
+      }
+      .portal-switch a:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+      .divider,
+      .link,
+      .portal-switch {
+        animation: fadeUp 0.45s ease both;
+        animation-delay: 0.36s;
+      }
+
+      @keyframes drift {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body {
-            height: 100%;
-            font-family: 'Space Grotesk', sans-serif;
-            background: var(--bg1);
-            color: var(--text);
-            overflow-x: hidden;
+        50% {
+          transform: translate(16px, -12px) scale(1.05);
         }
-        body {
-            min-height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px 16px;
-            background: radial-gradient(ellipse at top left, rgba(233,69,96,0.12) 0%, transparent 60%),
-                        radial-gradient(ellipse at bottom right, rgba(15,52,96,0.3) 0%, transparent 60%),
-                        var(--bg1);
+      }
+      @keyframes bgFloat {
+        0%,
+        100% {
+          background-position:
+            0% 0%,
+            100% 100%,
+            0 0;
         }
-        .container {
-            width: 100%;
-            max-width: 420px;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 36px 28px;
-            backdrop-filter: blur(20px);
+        50% {
+          background-position:
+            18% 8%,
+            82% 92%,
+            0 0;
         }
-        .logo {
-            text-align: center;
-            margin-bottom: 32px;
+      }
+      @keyframes borderFlow {
+        0% {
+          background-position: 0% 50%;
+        }
+        100% {
+          background-position: 200% 50%;
+        }
+      }
+      @keyframes sheen {
+        0%,
+        70%,
+        100% {
+          left: -80%;
+          opacity: 0;
+        }
+        12%,
+        38% {
+          opacity: 1;
+        }
+        45% {
+          left: 135%;
+          opacity: 0;
+        }
+      }
+      @keyframes iconPulse {
+        0%,
+        100% {
+          transform: translateY(0);
+          box-shadow: 0 8px 32px rgba(233, 69, 96, 0.3);
+        }
+        50% {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 36px rgba(233, 69, 96, 0.45);
+        }
+      }
+      @keyframes ringPulse {
+        0% {
+          transform: scale(0.94);
+          opacity: 0;
+        }
+        30% {
+          opacity: 0.35;
+        }
+        100% {
+          transform: scale(1.15);
+          opacity: 0;
+        }
+      }
+      @media (max-width: 768px) {
+        body::before,
+        body::after {
+          filter: blur(34px);
         }
         .logo-icon {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, var(--red), #ff6b6b);
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin: 0 auto 16px;
-            box-shadow: 0 8px 32px rgba(233,69,96,0.3);
+          animation-duration: 2.8s;
         }
-        .logo h1 { font-size: 22px; font-weight: 700; color: var(--text); }
-        .logo p { font-size: 13px; color: var(--muted); margin-top: 4px; }
-        .form-group { margin-bottom: 18px; }
-        label { font-size: 12px; font-weight: 600; color: var(--muted); display: block; margin-bottom: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
-        input {
-            width: 100%;
-            padding: 14px 16px;
-            background: rgba(255,255,255,0.06);
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
-            color: var(--text);
-            font-size: 16px; /* prevents zoom on iOS */
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.2s, background 0.2s;
-            -webkit-appearance: none;
+      }
+      @keyframes floatIn {
+        from {
+          opacity: 0;
+          transform: translateY(14px) scale(0.99);
         }
-        input:focus { border-color: var(--red); background: rgba(233,69,96,0.06); }
-        input::placeholder { color: rgba(255,255,255,0.2); }
-        .btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, var(--red), #ff6b6b);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            font-family: inherit;
-            cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.2s;
-            box-shadow: 0 4px 20px rgba(233,69,96,0.35);
-            margin-top: 8px;
-            letter-spacing: 0.02em;
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
         }
-        .btn:active { transform: scale(0.98); }
-        .error {
-            background: rgba(233,69,96,0.1);
-            border: 1px solid rgba(233,69,96,0.3);
-            color: #ff8099;
-            padding: 12px 14px;
-            border-radius: 10px;
-            font-size: 13px;
-            margin-bottom: 20px;
-            text-align: center;
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
         }
-        .divider { height: 1px; background: var(--border); margin: 24px 0; }
-        .link { text-align: center; font-size: 14px; color: var(--muted); }
-        .link a { color: var(--red); text-decoration: none; font-weight: 600; }
-        .portal-switch {
-            text-align: center;
-            margin-top: 16px;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        .portal-switch a {
-            font-size: 13px;
-            color: var(--muted);
-            text-decoration: none;
-            padding: 8px 16px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            display: inline-block;
-            transition: border-color 0.2s;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
         }
-        .portal-switch a:hover { border-color: rgba(255,255,255,0.2); }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <canvas id="particle-network"></canvas>
     <div class="container">
-        <div class="logo">
-            <div class="logo-icon">🎓</div>
-            <h1>Smart Attendance</h1>
-            <p>Pattern-Based Attendance System</p>
+      <div class="logo">
+        <div class="logo-icon">🎓</div>
+        <h1>Smart Attendance</h1>
+        <p>Pattern-Based Attendance System</p>
+      </div>
+      {% if error %}
+      <div class="error">{{ error }}</div>
+      {% endif %}
+      <form method="POST">
+        <div class="form-group">
+          <label>Matric Number</label>
+          <input
+            type="text"
+            name="matric_no"
+            placeholder="e.g. 2022/SC/25026"
+            autocomplete="username"
+            required
+          />
         </div>
-        {% if error %}
-        <div class="error">{{ error }}</div>
-        {% endif %}
-        <form method="POST">
-            <div class="form-group">
-                <label>Matric Number</label>
-                <input type="text" name="matric_no" placeholder="e.g. AEF/2021/001" autocomplete="username" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
-            </div>
-            <input type="hidden" name="device_token" id="device_token">
-            <button type="submit" class="btn">Login</button>
-        </form>
-        <div class="divider"></div>
-        <div class="link">
-            <p>No account? <a href="/register">Register here</a></p>
+        <div class="form-group">
+          <label>Password</label>
+          <input
+            type="password"
+            name="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+          />
         </div>
-        <div class="portal-switch" style="margin-top:12px;">
-            <a href="/lecturer/login">👨‍🏫 Switch to Lecturer Portal</a>
-        </div>
+        <input type="hidden" name="device_token" id="device_token" />
+        <button type="submit" class="btn">Login</button>
+      </form>
+      <div class="divider"></div>
+      <div class="link">
+        <p>No account? <a href="/register">Register here</a></p>
+      </div>
+      <div class="portal-switch" style="margin-top: 12px">
+        <a href="/lecturer/login">👨‍🏫 Switch to Lecturer Portal</a>
+      </div>
     </div>
     <script>
-        // Try to read the device token from localStorage
-        const storedToken = localStorage.getItem('device_token') || '';
-        document.getElementById('device_token').value = storedToken;
+      // Try to read the device token from localStorage
+      const storedToken = localStorage.getItem("device_token") || "";
+      document.getElementById("device_token").value = storedToken;
+
+      // Lightweight particle network (mobile-friendly)
+      (function () {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+          return;
+        const canvas = document.getElementById("particle-network");
+        const ctx = canvas.getContext("2d");
+        const particles = [];
+        const isMobile = window.innerWidth <= 768;
+        const count = isMobile ? 24 : 38;
+        const linkDistance = isMobile ? 90 : 120;
+        let rafId = null;
+
+        function resize() {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        }
+
+        function init() {
+          particles.length = 0;
+          for (let i = 0; i < count; i++) {
+            particles.push({
+              x: Math.random() * canvas.width,
+              y: Math.random() * canvas.height,
+              vx: (Math.random() - 0.5) * 0.35,
+              vy: (Math.random() - 0.5) * 0.35,
+            });
+          }
+        }
+
+        function step() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 1.6, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(255,255,255,0.55)";
+            ctx.fill();
+
+            for (let j = i + 1; j < particles.length; j++) {
+              const q = particles[j];
+              const dx = p.x - q.x;
+              const dy = p.y - q.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist < linkDistance) {
+                const alpha = (1 - dist / linkDistance) * 0.22;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(q.x, q.y);
+                ctx.strokeStyle = `rgba(233,69,96,${alpha})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+              }
+            }
+          }
+          rafId = requestAnimationFrame(step);
+        }
+
+        resize();
+        init();
+        step();
+        window.addEventListener("resize", () => {
+          resize();
+          init();
+        });
+        window.addEventListener("beforeunload", () => {
+          if (rafId) cancelAnimationFrame(rafId);
+        });
+      })();
     </script>
-</body>
+  </body>
 </html>

@@ -1,90 +1,278 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>{{ course_code }} Attendance</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root{--red:#e94560;--green:#2ed573;--blue:#00b4d8;--bg1:#0d1117;--glass:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--text:#f0f6fc;--muted:rgba(240,246,252,0.5)}
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Space Grotesk',sans-serif;background:var(--bg1);color:var(--text);min-height:100dvh}
-        .navbar{position:sticky;top:0;z-index:100;background:rgba(13,17,23,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
-        .navbar h1{font-size:16px;font-weight:700;color:var(--blue)}
-        .back-btn{padding:7px 14px;background:var(--glass);border:1px solid var(--border);border-radius:8px;color:var(--muted);text-decoration:none;font-size:13px}
-        .content{padding:20px 16px 80px;max-width:700px;margin:0 auto}
-        .course-header{background:linear-gradient(135deg,rgba(0,180,216,0.12),rgba(0,180,216,0.04));border:1px solid rgba(0,180,216,0.2);border-radius:18px;padding:20px;margin-bottom:20px}
-        .course-code{font-size:28px;font-weight:700;color:var(--blue)}
-        .course-student{font-size:13px;color:var(--muted);margin-top:4px}
-        .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
-        .stat{background:rgba(255,255,255,0.05);border-radius:12px;padding:12px 8px;text-align:center}
-        .stat h3{font-size:22px;font-weight:700;color:var(--blue)}
-        .stat p{font-size:11px;color:var(--muted);margin-top:3px}
-        .progress-wrap{margin-top:16px}
-        .progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
-        .progress-bar{background:rgba(255,255,255,0.08);border-radius:8px;height:8px;overflow:hidden}
-        .progress-fill{height:100%;border-radius:8px;transition:width 0.5s}
-        .sessions-card{background:var(--glass);border:1px solid var(--border);border-radius:18px;overflow:hidden}
-        .sessions-header{padding:16px 20px;border-bottom:1px solid var(--border);font-size:14px;font-weight:600}
-        .session-item{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.04)}
-        .session-item:last-child{border-bottom:none}
-        .session-num{font-size:12px;color:var(--muted);margin-bottom:2px}
-        .session-date{font-size:14px;font-weight:600}
-        .session-time{font-size:12px;color:var(--muted)}
-        .badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700}
-        .badge.present{background:rgba(46,213,115,0.15);color:var(--green);border:1px solid rgba(46,213,115,0.2)}
-        .badge.absent{background:rgba(233,69,96,0.15);color:var(--red);border:1px solid rgba(233,69,96,0.2)}
-        .warning-box{background:rgba(255,165,2,0.08);border:1px solid rgba(255,165,2,0.2);border-radius:12px;padding:12px 16px;font-size:13px;color:#ffa502;margin-bottom:16px;display:flex;gap:8px;align-items:flex-start}
-        .empty{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+      :root {
+        --red: #e94560;
+        --green: #2ed573;
+        --blue: #00b4d8;
+        --bg1: #0d1117;
+        --glass: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #f0f6fc;
+        --muted: rgba(240, 246, 252, 0.5);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        background: var(--bg1);
+        color: var(--text);
+        min-height: 100dvh;
+      }
+      .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(13, 17, 23, 0.95);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+        padding: 14px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .navbar h1 {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--blue);
+      }
+      .back-btn {
+        padding: 7px 14px;
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 13px;
+      }
+      .content {
+        padding: 20px 16px 80px;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+      .course-header {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 180, 216, 0.12),
+          rgba(0, 180, 216, 0.04)
+        );
+        border: 1px solid rgba(0, 180, 216, 0.2);
+        border-radius: 18px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .course-code {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--blue);
+      }
+      .course-student {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 16px;
+      }
+      @media (min-width: 480px) {
+        .stats-row {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+      .stat {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 12px 8px;
+        text-align: center;
+      }
+      .stat h3 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--blue);
+      }
+      .stat p {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 3px;
+      }
+      .progress-wrap {
+        margin-top: 16px;
+      }
+      .progress-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .progress-bar {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        height: 8px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        border-radius: 8px;
+        transition: width 0.5s;
+      }
+      .sessions-card {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      .sessions-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .session-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 13px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .session-item:last-child {
+        border-bottom: none;
+      }
+      .session-num {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 2px;
+      }
+      .session-date {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .session-time {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .badge.present {
+        background: rgba(46, 213, 115, 0.15);
+        color: var(--green);
+        border: 1px solid rgba(46, 213, 115, 0.2);
+      }
+      .badge.absent {
+        background: rgba(233, 69, 96, 0.15);
+        color: var(--red);
+        border: 1px solid rgba(233, 69, 96, 0.2);
+      }
+      .warning-box {
+        background: rgba(255, 165, 2, 0.08);
+        border: 1px solid rgba(255, 165, 2, 0.2);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 13px;
+        color: #ffa502;
+        margin-bottom: 16px;
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .empty {
+        text-align: center;
+        padding: 40px;
+        color: var(--muted);
+        font-size: 14px;
+      }
     </style>
-</head>
-<body>
-<div class="navbar">
-    <h1>{{ course_code }}</h1>
-    <a href="/dashboard" class="back-btn">← Back</a>
-</div>
-<div class="content">
-    {% if rate < 75 and total > 0 %}
-    <div class="warning-box">⚠️ Your attendance is below 75%. You may be barred from exams if this continues.</div>
-    {% endif %}
+  </head>
+  <body>
+    <div class="navbar">
+      <h1>{{ course_code }}</h1>
+      <a href="/dashboard" class="back-btn">← Back</a>
+    </div>
+    <div class="content">
+      {% if rate < 75 and total > 0 %}
+      <div class="warning-box">
+        ⚠️ Your attendance is below 75%. You may be barred from exams if this
+        continues.
+      </div>
+      {% endif %}
 
-    <div class="course-header">
+      <div class="course-header">
         <div class="course-code">{{ course_code }}</div>
-        <div class="course-student">{{ student.full_name }} — {{ student.matric_no }}</div>
+        <div class="course-student">
+          {{ student.full_name }} — {{ student.matric_no }}
+        </div>
         <div class="stats-row">
-            <div class="stat"><h3>{{ total }}</h3><p>Sessions</p></div>
-            <div class="stat"><h3 style="color:var(--green)">{{ present }}</h3><p>Present</p></div>
-            <div class="stat"><h3 style="color:var(--red)">{{ absent }}</h3><p>Absent</p></div>
-            <div class="stat"><h3>{{ rate }}%</h3><p>Rate</p></div>
+          <div class="stat">
+            <h3>{{ total }}</h3>
+            <p>Sessions</p>
+          </div>
+          <div class="stat">
+            <h3 style="color: var(--green)">{{ present }}</h3>
+            <p>Present</p>
+          </div>
+          <div class="stat">
+            <h3 style="color: var(--red)">{{ absent }}</h3>
+            <p>Absent</p>
+          </div>
+          <div class="stat">
+            <h3>{{ rate }}%</h3>
+            <p>Rate</p>
+          </div>
         </div>
         <div class="progress-wrap">
-            <div class="progress-label">
-                <span>Attendance Rate</span>
-                <span>{{ rate }}%</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width:{{ rate }}%; background:{% if rate >= 75 %}linear-gradient(90deg,var(--blue),var(--green)){% else %}linear-gradient(90deg,var(--red),#ff6b6b){% endif %}"></div>
-            </div>
+          <div class="progress-label">
+            <span>Attendance Rate</span>
+            <span>{{ rate }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              style="width:{{ rate }}%; background:{% if rate >= 75 %}linear-gradient(90deg,var(--blue),var(--green)){% else %}linear-gradient(90deg,var(--red),#ff6b6b){% endif %}"
+            ></div>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <div class="sessions-card">
+      <div class="sessions-card">
         <div class="sessions-header">📅 Session History</div>
-        {% if attendances %}
-        {% for a in attendances %}
+        {% if attendances %} {% for a in attendances %}
         <div class="session-item">
-            <div>
-                <div class="session-num">Session {{ loop.index }}</div>
-                <div class="session-date">{{ a.timestamp.strftime('%A, %d %B %Y') }}</div>
-                <div class="session-time">{{ a.timestamp.strftime('%I:%M %p') }}</div>
+          <div>
+            <div class="session-num">Session {{ loop.index }}</div>
+            <div class="session-date">
+              {{ a.timestamp.strftime('%A, %d %B %Y') }}
             </div>
-            <span class="badge {{ a.status }}">{{ a.status | upper }}</span>
+            <div class="session-time">
+              {{ a.timestamp.strftime('%I:%M %p') }}
+            </div>
+          </div>
+          <span class="badge {{ a.status }}">{{ a.status | upper }}</span>
         </div>
-        {% endfor %}
-        {% else %}
+        {% endfor %} {% else %}
         <div class="empty">No sessions recorded for this course yet.</div>
         {% endif %}
+      </div>
     </div>
-</div>
-</body>
+  </body>
 </html>

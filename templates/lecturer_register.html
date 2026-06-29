@@ -13,7 +13,24 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+            background-size: 140% 140%;
+            animation: bgFloat 16s ease-in-out infinite;
         }
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            filter: blur(42px);
+            pointer-events: none;
+            z-index: 0;
+            animation: drift 12s ease-in-out infinite;
+            will-change: transform, opacity;
+        }
+        body::before { top: -90px; left: -100px; background: rgba(0,180,216,0.16); }
+        body::after { right: -120px; bottom: -110px; background: rgba(72,202,228,0.14); animation-delay: -5s; }
         .container {
             background: rgba(255,255,255,0.05);
             backdrop-filter: blur(10px);
@@ -23,11 +40,54 @@
             width: 100%;
             max-width: 450px;
             margin: 30px auto;
+            position: relative;
+            z-index: 1;
+            animation: floatIn .7s ease both;
+            overflow: hidden;
         }
-        .logo { text-align: center; margin-bottom: 30px; }
+        .container::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(120deg, rgba(255,255,255,0.32), rgba(0,180,216,0.34), rgba(72,202,228,0.24), rgba(255,255,255,0.24));
+            background-size: 220% 220%;
+            animation: borderFlow 7s linear infinite;
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .container::after {
+            content: '';
+            position: absolute;
+            top: -120%;
+            left: -30%;
+            width: 60%;
+            height: 260%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(18deg);
+            animation: sheen 5.8s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .logo { text-align: center; margin-bottom: 30px; animation: fadeUp .45s ease both; }
+        .logo-icon{
+            width:56px;height:56px;background:linear-gradient(135deg,#00b4d8,#48cae4);border-radius:16px;
+            display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px;
+            box-shadow:0 8px 24px rgba(0,180,216,.3);animation:iconPulse 3.2s ease-in-out infinite;
+            position:relative;isolation:isolate;will-change:transform,box-shadow
+        }
+        .logo-icon::before,.logo-icon::after{content:'';position:absolute;inset:-8px;border-radius:22px;border:1px solid rgba(255,255,255,.24);opacity:0;pointer-events:none;animation:ringPulse 2.8s ease-out infinite}
+        .logo-icon::after{inset:-16px;border-color:rgba(0,180,216,.35);animation-delay:1.2s}
         .logo h1 { color: #00b4d8; font-size: 24px; }
         .logo p { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 5px; }
-        .form-group { margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; opacity: 0; transform: translateY(8px); animation: fadeUp .42s ease forwards; }
+        form .form-group:nth-of-type(1){animation-delay:.12s}
+        form .form-group:nth-of-type(2){animation-delay:.16s}
+        form .form-group:nth-of-type(3){animation-delay:.20s}
+        form .form-group:nth-of-type(4){animation-delay:.24s}
+        form .form-group:nth-of-type(5){animation-delay:.28s}
         label { color: rgba(255,255,255,0.7); font-size: 13px; display: block; margin-bottom: 8px; }
         input, select {
             width: 100%;
@@ -38,9 +98,9 @@
             color: white;
             font-size: 14px;
             outline: none;
-            transition: border 0.3s;
+            transition: border .22s, background .22s, transform .22s, box-shadow .22s;
         }
-        input:focus, select:focus { border-color: #00b4d8; }
+        input:focus, select:focus { border-color: #00b4d8; transform: translateY(-1px); box-shadow: 0 10px 22px rgba(0,180,216,0.14); }
         select option { background: #203a43; }
         .btn {
             width: 100%;
@@ -52,9 +112,24 @@
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background .22s, transform .18s, box-shadow .22s, filter .2s;
+            animation: fadeUp .45s ease both;
+            animation-delay: .34s;
+            position: relative;
+            overflow: hidden;
         }
-        .btn:hover { background: #0096c7; }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -120%;
+            width: 120%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.26), transparent);
+            transition: left .5s ease;
+        }
+        .btn:hover::before { left: 120%; }
+        .btn:hover { background: #0096c7; transform: translateY(-2px); box-shadow: 0 8px 26px rgba(0,180,216,0.32); filter: brightness(1.03); }
         .error {
             background: rgba(233,69,96,0.2);
             border: 1px solid #e94560;
@@ -76,11 +151,23 @@
         }
         .divider a { color: rgba(255,255,255,0.4); font-size: 12px; text-decoration: none; }
         .divider a:hover { color: #e94560; }
+        .link, .divider { animation: fadeUp .45s ease both; animation-delay: .4s; }
+        @keyframes drift { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(18px,-14px) scale(1.05); } }
+        @keyframes bgFloat { 0%,100% { background-position: 0% 0%; } 50% { background-position: 18% 8%; } }
+        @keyframes borderFlow { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+        @keyframes sheen { 0%,70%,100% { left: -80%; opacity: 0; } 12%,38% { opacity: 1; } 45% { left: 135%; opacity: 0; } }
+        @keyframes iconPulse { 0%,100% { transform: translateY(0); box-shadow: 0 8px 24px rgba(0,180,216,.3); } 50% { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,180,216,.45); } }
+        @keyframes ringPulse { 0% { transform: scale(.94); opacity: 0; } 30% { opacity: .35; } 100% { transform: scale(1.15); opacity: 0; } }
+        @keyframes floatIn { from { opacity: 0; transform: translateY(14px) scale(.99);} to { opacity: 1; transform: translateY(0) scale(1);} }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+        @media (max-width:768px){body::before,body::after{filter:blur(34px)}.logo-icon{animation-duration:2.8s}}
+        @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation: none !important; transition: none !important; } }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="logo">
+            <div class="logo-icon">👨‍🏫</div>
             <h1>👨‍🏫 Lecturer Portal</h1>
             <p>Create Your Lecturer Account</p>
         </div>

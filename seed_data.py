@@ -197,10 +197,12 @@ def seed():
     with app.app_context():
         # Only seed if faculties table is empty
         if Faculty.query.count() > 0:
-            print("Data already seeded. Skipping.")
+            from app import logger
+            logger.info("Data already seeded. Skipping.")
             return
 
-        print("Seeding AEFUNAi faculties, departments and courses...")
+        from app import logger
+        logger.info("Seeding AEFUNAi faculties, departments and courses...")
 
         for faculty_name, departments in AEFUNAI_DATA.items():
             faculty = Faculty(name=faculty_name)
@@ -232,13 +234,13 @@ def seed():
                 password=bcrypt.generate_password_hash('Admin@1234').decode('utf-8')
             )
             db.session.add(admin)
-            print("Default admin created: username=admin, password=Admin@1234")
+            logger.info("Default admin created: username=admin, password=Admin@1234")
 
         db.session.commit()
-        print("✅ Seeding complete!")
-        print(f"   Faculties: {Faculty.query.count()}")
-        print(f"   Departments: {Department.query.count()}")
-        print(f"   Courses: {Course.query.count()}")
+        logger.info("✅ Seeding complete!")
+        logger.info(f"   Faculties: {Faculty.query.count()}")
+        logger.info(f"   Departments: {Department.query.count()}")
+        logger.info(f"   Courses: {Course.query.count()}")
 
 if __name__ == '__main__':
     seed()

@@ -1,5 +1,8 @@
 import os
+import logging
 from twilio.rest import Client
+
+logger = logging.getLogger('smart_attendance')
 
 # Load from environment (never hardcode)
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
@@ -20,7 +23,7 @@ def send_sms(to_phone, message):
     """Send SMS – returns (success, message_or_sid)"""
     ok, detail = validate_twilio_config()
     if not ok:
-        print(f"⚠️ {detail}")
+        logger.warning(detail)
         return False, detail
     try:
         if to_phone.startswith('0'):
@@ -34,7 +37,7 @@ def send_sms(to_phone, message):
             from_=TWILIO_PHONE_NUMBER,
             to=to_phone
         )
-        print(f"SMS sent to {to_phone}: {msg.sid}")
+        logger.info(f"SMS sent to {to_phone}: {msg.sid}")
         return True, msg.sid
     except Exception as e:
         raw = str(e)
@@ -46,7 +49,7 @@ def send_sms(to_phone, message):
             friendly = 'The Twilio number cannot send to this destination (error 21606).'
         else:
             friendly = f"Twilio send failed: {raw}"
-        print(f"SMS failed: {friendly}")
+        logger.error(f"SMS failed: {friendly}")
         return False, friendly
 
 def send_attendance_alert(student_name, parent_phone, course, status, timestamp):

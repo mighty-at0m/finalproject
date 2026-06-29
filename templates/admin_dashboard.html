@@ -1,635 +1,1409 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Admin Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root{--gold:#f4a261;--red:#e94560;--green:#2ed573;--blue:#00b4d8;--bg1:#0d1117;--glass:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--text:#f0f6fc;--muted:rgba(240,246,252,0.5)}
-        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-        html,body{font-family:'Space Grotesk',sans-serif;background:var(--bg1);color:var(--text);min-height:100dvh}
-        .navbar{position:sticky;top:0;z-index:200;background:rgba(13,17,23,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
-        .navbar-brand{display:flex;align-items:center;gap:10px}
-        .navbar-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--gold),#e76f51);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
-        .navbar h1{font-size:15px;font-weight:700}
-        .logout-btn{padding:6px 12px;background:rgba(233,69,96,0.1);border:1px solid rgba(233,69,96,0.2);border-radius:8px;color:var(--red);text-decoration:none;font-size:12px;font-weight:600}
-        .tabs-wrapper{background:var(--bg1);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
-        .tabs-wrapper::-webkit-scrollbar{display:none}
-        .tabs{display:flex;padding:0 12px;min-width:max-content}
-        .tab{padding:12px 16px;font-size:13px;font-weight:600;color:var(--muted);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;font-family:inherit;white-space:nowrap}
-        .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
-        .tab-content{display:none;padding:16px;max-width:1100px;margin:0 auto;padding-bottom:80px}
-        .tab-content.active{display:block}
-        .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
-        @media(min-width:480px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
-        .stat-card{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:16px 12px;text-align:center}
-        .stat-card h3{font-size:28px;font-weight:700;color:var(--gold)}
-        .stat-card p{font-size:11px;color:var(--muted);margin-top:4px}
-        .card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px}
-        .card-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px}
-        .form-row{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px}
-        @media(min-width:480px){.form-row{grid-template-columns:1fr 1fr}}
-        .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
-        input[type=text],input[type=email],select{width:100%;padding:11px 13px;background:rgba(255,255,255,0.06);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;font-family:inherit;outline:none;-webkit-appearance:none;transition:border-color 0.2s}
-        input:focus,select:focus{border-color:var(--gold)}
-        input::placeholder{color:rgba(255,255,255,0.2)}
-        select option{background:#161b22}
-        select:disabled{opacity:0.4}
-        .btn{padding:11px 16px;border:none;border-radius:10px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:transform 0.1s}
-        .btn:active{transform:scale(0.97)}
-        .btn-gold{background:linear-gradient(135deg,var(--gold),#e76f51);color:white}
-        .btn-red{background:linear-gradient(135deg,var(--red),#ff6b6b);color:white}
-        .btn-blue{background:linear-gradient(135deg,var(--blue),#48cae4);color:white}
-        .btn-sm{padding:5px 10px;font-size:11px;border-radius:7px}
-        .btn-full{width:100%}
-        .alert{padding:10px 14px;border-radius:10px;font-size:13px;margin-top:8px;display:none;font-weight:600;text-align:center}
-        .alert.success{background:rgba(46,213,115,0.1);color:var(--green);border:1px solid rgba(46,213,115,0.2)}
-        .alert.error{background:rgba(233,69,96,0.1);color:var(--red);border:1px solid rgba(233,69,96,0.2)}
-        .filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-        .filter-bar input,.filter-bar select{flex:1;min-width:130px;margin:0}
-        .item-list{display:flex;flex-direction:column;gap:8px}
-        .item-row{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:11px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-        .item-name{font-size:14px;font-weight:600}
-        .item-sub{font-size:12px;color:var(--muted);margin-top:2px}
-        .item-actions{display:flex;gap:6px;flex-shrink:0}
-        .desktop-table{display:none;overflow-x:auto}
-        @media(min-width:700px){.desktop-table{display:block}.item-list.mobile-only{display:none}}
-        table{width:100%;border-collapse:collapse;min-width:500px}
-        th,td{padding:10px 14px;text-align:left;font-size:12px}
-        th{background:rgba(255,255,255,0.03);color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:0.04em}
-        td{border-top:1px solid rgba(255,255,255,0.04);color:rgba(240,246,252,0.85)}
-        .td-actions{display:flex;gap:5px}
-        .badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;display:inline-block}
-        .badge.active{background:rgba(46,213,115,0.15);color:var(--green)}
-        .badge.info{background:rgba(0,180,216,0.15);color:var(--blue)}
-        .empty{text-align:center;padding:30px;color:var(--muted);font-size:13px}
-        .two-col{display:grid;grid-template-columns:1fr;gap:14px}
-        @media(min-width:640px){.two-col{grid-template-columns:1fr 1fr}}
+      :root {
+        --gold: #f4a261;
+        --red: #e94560;
+        --green: #2ed573;
+        --blue: #00b4d8;
+        --bg1: #0d1117;
+        --glass: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #f0f6fc;
+        --muted: rgba(240, 246, 252, 0.5);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        background: var(--bg1);
+        color: var(--text);
+        min-height: 100dvh;
+      }
+      .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 200;
+        background: rgba(13, 17, 23, 0.95);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .navbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .navbar-icon {
+        width: 34px;
+        height: 34px;
+        background: linear-gradient(135deg, var(--gold), #e76f51);
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+      .navbar h1 {
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .logout-btn {
+        padding: 6px 12px;
+        background: rgba(233, 69, 96, 0.1);
+        border: 1px solid rgba(233, 69, 96, 0.2);
+        border-radius: 8px;
+        color: var(--red);
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .tabs-wrapper {
+        background: var(--bg1);
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .tabs-wrapper::-webkit-scrollbar {
+        display: none;
+      }
+      .tabs {
+        display: flex;
+        padding: 0 12px;
+        min-width: max-content;
+      }
+      .tab {
+        padding: 12px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+        font-family: inherit;
+        white-space: nowrap;
+      }
+      .tab.active {
+        color: var(--gold);
+        border-bottom-color: var(--gold);
+      }
+      .tab-content {
+        display: none;
+        padding: 16px;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding-bottom: 80px;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      @media (min-width: 480px) {
+        .stats-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+      .stat-card {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px 12px;
+        text-align: center;
+      }
+      .stat-card h3 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--gold);
+      }
+      .stat-card p {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .card {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 14px;
+      }
+      .card-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 14px;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      @media (min-width: 480px) {
+        .form-row {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .form-row-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      input[type="text"],
+      input[type="email"],
+      select {
+        width: 100%;
+        padding: 11px 13px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        color: var(--text);
+        font-size: 15px;
+        font-family: inherit;
+        outline: none;
+        -webkit-appearance: none;
+        transition: border-color 0.2s;
+      }
+      input:focus,
+      select:focus {
+        border-color: var(--gold);
+      }
+      input::placeholder {
+        color: rgba(255, 255, 255, 0.2);
+      }
+      select option {
+        background: #161b22;
+      }
+      select:disabled {
+        opacity: 0.4;
+      }
+      .btn {
+        padding: 11px 16px;
+        border: none;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        transition: transform 0.1s;
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
+      .btn-gold {
+        background: linear-gradient(135deg, var(--gold), #e76f51);
+        color: white;
+      }
+      .btn-red {
+        background: linear-gradient(135deg, var(--red), #ff6b6b);
+        color: white;
+      }
+      .btn-blue {
+        background: linear-gradient(135deg, var(--blue), #48cae4);
+        color: white;
+      }
+.btn-sm {
+         padding: 5px 10px;
+         font-size: 11px;
+         border-radius: 7px;
+         min-height: 44px;
+         min-width: 44px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+       }
+      .btn-full {
+        width: 100%;
+      }
+      .alert {
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        margin-top: 8px;
+        display: none;
+        font-weight: 600;
+        text-align: center;
+      }
+      .alert.success {
+        background: rgba(46, 213, 115, 0.1);
+        color: var(--green);
+        border: 1px solid rgba(46, 213, 115, 0.2);
+      }
+      .alert.error {
+        background: rgba(233, 69, 96, 0.1);
+        color: var(--red);
+        border: 1px solid rgba(233, 69, 96, 0.2);
+      }
+      .filter-bar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .filter-bar input,
+      .filter-bar select {
+        flex: 1;
+        min-width: 130px;
+        margin: 0;
+      }
+      .item-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .item-row {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 11px;
+        padding: 12px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+      .item-name {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .item-sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .item-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .desktop-table {
+        display: none;
+        overflow-x: auto;
+      }
+      @media (min-width: 700px) {
+        .desktop-table {
+          display: block;
+        }
+        .item-list.mobile-only {
+          display: none;
+        }
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 500px;
+      }
+      th,
+      td {
+        padding: 10px 14px;
+        text-align: left;
+        font-size: 12px;
+      }
+      th {
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      td {
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        color: rgba(240, 246, 252, 0.85);
+      }
+      .td-actions {
+        display: flex;
+        gap: 5px;
+      }
+      .badge {
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 700;
+        display: inline-block;
+      }
+      .badge.active {
+        background: rgba(46, 213, 115, 0.15);
+        color: var(--green);
+      }
+      .badge.info {
+        background: rgba(0, 180, 216, 0.15);
+        color: var(--blue);
+      }
+      .empty {
+        text-align: center;
+        padding: 30px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      @media (min-width: 640px) {
+        .two-col {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
 
-        /* Modal styles */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center;
-        }
-        .modal {
-            background: var(--bg1); border: 1px solid var(--border); border-radius: 16px;
-            padding: 24px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto;
-            position: relative;
-        }
+      /* Modal styles */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+      }
+.modal {
+         background: var(--bg1);
+         border: 1px solid var(--border);
+         border-radius: 16px;
+         padding: 24px;
+         width: 90%;
+         max-width: 500px;
+         max-height: 80vh;
+         overflow-y: auto;
+         position: relative;
+       }
+       @media (max-height: 600px) {
+         .modal {
+           padding: 16px;
+         }
+       }
     </style>
-</head>
-<body>
-<div class="navbar">
-    <div class="navbar-brand">
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="navbar-brand">
         <div class="navbar-icon">⚙️</div>
         <h1>Admin Panel</h1>
+      </div>
+      <a href="/admin/logout" class="logout-btn">Logout</a>
     </div>
-    <a href="/admin/logout" class="logout-btn">Logout</a>
-</div>
 
-<div class="tabs-wrapper">
-    <div class="tabs">
-        <button class="tab active" onclick="switchTab('overview',this)">📊 Overview</button>
-        <button class="tab" onclick="switchTab('faculties',this)">🏫 Faculties</button>
-        <button class="tab" onclick="switchTab('departments',this)">🏛️ Departments</button>
-        <button class="tab" onclick="switchTab('courses',this)">📚 Courses</button>
-        <button class="tab" onclick="switchTab('students',this)">🎓 Students</button>
-        <button class="tab" onclick="switchTab('lecturers',this)">👨‍🏫 Lecturers</button>
+    <div class="tabs-wrapper">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('overview', this)">
+          📊 Overview
+        </button>
+        <button class="tab" onclick="switchTab('faculties', this)">
+          🏫 Faculties
+        </button>
+        <button class="tab" onclick="switchTab('departments', this)">
+          🏛️ Departments
+        </button>
+        <button class="tab" onclick="switchTab('courses', this)">
+          📚 Courses
+        </button>
+        <button class="tab" onclick="switchTab('students', this)">
+          🎓 Students
+        </button>
+        <button class="tab" onclick="switchTab('lecturers', this)">
+          👨‍🏫 Lecturers
+        </button>
+      </div>
     </div>
-</div>
 
-<!-- OVERVIEW -->
-<div class="tab-content active" id="tab-overview">
-    <div class="stats-grid">
-        <div class="stat-card"><h3>{{ faculties|length }}</h3><p>Faculties</p></div>
-        <div class="stat-card"><h3>{{ departments|length }}</h3><p>Departments</p></div>
-        <div class="stat-card"><h3>{{ courses|length }}</h3><p>Courses</p></div>
-        <div class="stat-card"><h3>{{ students|length }}</h3><p>Students</p></div>
-        <div class="stat-card"><h3>{{ lecturers|length }}</h3><p>Lecturers</p></div>
-        <div class="stat-card"><h3 style="color:var(--green);">
-            {% set total_att = namespace(val=0) %}
-            {% for s in students %}{% set atts = s.attendances %}{% set total_att.val = total_att.val + atts|length %}{% endfor %}
-            {{ total_att.val }}
-        </h3><p>Total Attendance Records</p></div>
+    <!-- OVERVIEW -->
+    <div class="tab-content active" id="tab-overview">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>{{ faculties|length }}</h3>
+          <p>Faculties</p>
+        </div>
+        <div class="stat-card">
+          <h3>{{ departments|length }}</h3>
+          <p>Departments</p>
+        </div>
+        <div class="stat-card">
+          <h3>{{ courses|length }}</h3>
+          <p>Courses</p>
+        </div>
+        <div class="stat-card">
+          <h3>{{ students|length }}</h3>
+          <p>Students</p>
+        </div>
+        <div class="stat-card">
+          <h3>{{ lecturers|length }}</h3>
+          <p>Lecturers</p>
+        </div>
+        <div class="stat-card">
+          <h3 style="color: var(--green)">
+            {% set total_att = namespace(val=0) %} {% for s in students %}{% set
+            atts = s.attendances %}{% set total_att.val = total_att.val +
+            atts|length %}{% endfor %} {{ total_att.val }}
+          </h3>
+          <p>Total Attendance Records</p>
+        </div>
+      </div>
     </div>
-</div>
 
-<!-- FACULTIES -->
-<div class="tab-content" id="tab-faculties">
-    <div class="two-col">
+    <!-- FACULTIES -->
+    <div class="tab-content" id="tab-faculties">
+      <div class="two-col">
         <div class="card">
-            <div class="card-title">➕ Add Faculty</div>
-            <div class="form-row" style="grid-template-columns:1fr">
-                <input type="text" id="faculty_name" placeholder="Faculty name e.g. Faculty of Science">
-            </div>
-            <button class="btn btn-gold btn-full" onclick="addFaculty()">Add Faculty</button>
-            <div class="alert" id="faculty-alert"></div>
+          <div class="card-title">➕ Add Faculty</div>
+          <div class="form-row" style="grid-template-columns: 1fr">
+            <input
+              type="text"
+              id="faculty_name"
+              placeholder="Faculty name e.g. Faculty of Science"
+            />
+          </div>
+          <button class="btn btn-gold btn-full" onclick="addFaculty()">
+            Add Faculty
+          </button>
+          <div class="alert" id="faculty-alert"></div>
         </div>
         <div class="card">
-            <div class="card-title">🏫 All Faculties ({{ faculties|length }})</div>
-            <div class="item-list">
-                {% for f in faculties %}
-                <div class="item-row">
-                    <div>
-                        <div class="item-name">{{ f.name }}</div>
-                        <div class="item-sub">{{ f.departments|length }} departments</div>
-                    </div>
-                    <button class="btn btn-red btn-sm" onclick="deleteFaculty({{ f.id }},'{{ f.name }}')">Delete</button>
+          <div class="card-title">
+            🏫 All Faculties ({{ faculties|length }})
+          </div>
+          <div class="item-list">
+            {% for f in faculties %}
+            <div class="item-row">
+              <div>
+                <div class="item-name">{{ f.name }}</div>
+                <div class="item-sub">
+                  {{ f.departments|length }} departments
                 </div>
-                {% else %}
-                <div class="empty">No faculties yet</div>
-                {% endfor %}
+              </div>
+              <button
+                class="btn btn-red btn-sm"
+                onclick="deleteFaculty({{ f.id }},'{{ f.name }}')"
+              >
+                Delete
+              </button>
             </div>
+            {% else %}
+            <div class="empty">No faculties yet</div>
+            {% endfor %}
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- DEPARTMENTS -->
-<div class="tab-content" id="tab-departments">
-    <div class="two-col">
+    <!-- DEPARTMENTS -->
+    <div class="tab-content" id="tab-departments">
+      <div class="two-col">
         <div class="card">
-            <div class="card-title">➕ Add Department</div>
-            <div class="form-row" style="grid-template-columns:1fr;gap:8px">
-                <select id="dept_faculty_select">
-                    <option value="">— Select Faculty —</option>
-                    {% for f in faculties %}<option value="{{ f.id }}">{{ f.name }}</option>{% endfor %}
-                </select>
-                <input type="text" id="dept_name" placeholder="Department name">
-            </div>
-            <button class="btn btn-gold btn-full" onclick="addDepartment()">Add Department</button>
-            <div class="alert" id="dept-alert"></div>
+          <div class="card-title">➕ Add Department</div>
+          <div class="form-row" style="grid-template-columns: 1fr; gap: 8px">
+            <select id="dept_faculty_select">
+              <option value="">— Select Faculty —</option>
+              {% for f in faculties %}
+              <option value="{{ f.id }}">{{ f.name }}</option>
+              {% endfor %}
+            </select>
+            <input type="text" id="dept_name" placeholder="Department name" />
+          </div>
+          <button class="btn btn-gold btn-full" onclick="addDepartment()">
+            Add Department
+          </button>
+          <div class="alert" id="dept-alert"></div>
         </div>
         <div class="card">
-            <div class="card-title">🏛️ All Departments ({{ departments|length }})</div>
-            <div class="filter-bar">
-                <input type="text" id="dept_filter" placeholder="Search department..." onkeyup="filterList('dept_filter','dept_list_items','item-name')">
-            </div>
-            <div class="item-list" id="dept_list_items">
-                {% for d in departments %}
-                <div class="item-row dept-item" data-name="{{ d.name|lower }}">
-                    <div>
-                        <div class="item-name">{{ d.name }}</div>
-                        <div class="item-sub">{{ d.faculty.name }} · {{ d.courses|length }} courses</div>
-                    </div>
-                    <button class="btn btn-red btn-sm" onclick="deleteDepartment({{ d.id }},'{{ d.name }}')">Delete</button>
+          <div class="card-title">
+            🏛️ All Departments ({{ departments|length }})
+          </div>
+          <div class="filter-bar">
+            <input
+              type="text"
+              id="dept_filter"
+              placeholder="Search department..."
+              onkeyup="
+                filterList('dept_filter', 'dept_list_items', 'item-name')
+              "
+            />
+          </div>
+          <div class="item-list" id="dept_list_items">
+            {% for d in departments %}
+            <div class="item-row dept-item" data-name="{{ d.name|lower }}">
+              <div>
+                <div class="item-name">{{ d.name }}</div>
+                <div class="item-sub">
+                  {{ d.faculty.name }} · {{ d.courses|length }} courses
                 </div>
-                {% else %}
-                <div class="empty">No departments yet</div>
-                {% endfor %}
+              </div>
+              <button
+                class="btn btn-red btn-sm"
+                onclick="deleteDepartment({{ d.id }},'{{ d.name }}')"
+              >
+                Delete
+              </button>
             </div>
+            {% else %}
+            <div class="empty">No departments yet</div>
+            {% endfor %}
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- COURSES -->
-<div class="tab-content" id="tab-courses">
-    <div class="card" style="margin-bottom:14px">
+    <!-- COURSES -->
+    <div class="tab-content" id="tab-courses">
+      <div class="card" style="margin-bottom: 14px">
         <div class="card-title">➕ Add Course</div>
         <div class="form-row">
-            <select id="course_faculty_sel" onchange="loadDepts('course_faculty_sel','course_dept_sel')">
-                <option value="">— Faculty —</option>
-                {% for f in faculties %}<option value="{{ f.id }}">{{ f.name }}</option>{% endfor %}
-            </select>
-            <select id="course_dept_sel" disabled>
-                <option value="">— Department —</option>
-            </select>
+          <select
+            id="course_faculty_sel"
+            onchange="loadDepts('course_faculty_sel', 'course_dept_sel')"
+          >
+            <option value="">— Faculty —</option>
+            {% for f in faculties %}
+            <option value="{{ f.id }}">{{ f.name }}</option>
+            {% endfor %}
+          </select>
+          <select id="course_dept_sel" disabled>
+            <option value="">— Department —</option>
+          </select>
         </div>
         <div class="form-row">
-            <input type="text" id="course_code" placeholder="Course code e.g. CSC401">
-            <input type="text" id="course_title" placeholder="Course title">
+          <input
+            type="text"
+            id="course_code"
+            placeholder="Course code e.g. CSC401"
+          />
+          <input type="text" id="course_title" placeholder="Course title" />
         </div>
         <div class="form-row-3">
-            <select id="course_level">
-                <option value="">Level</option>
-                <option>100</option><option>200</option><option>300</option><option>400</option><option>500</option>
-            </select>
-            <select id="course_semester">
-                <option value="">Semester</option>
-                <option value="1">1st</option>
-                <option value="2">2nd</option>
-            </select>
-            <button class="btn btn-gold" onclick="addCourse()">Add Course</button>
+          <select id="course_level">
+            <option value="">Level</option>
+            <option>100</option>
+            <option>200</option>
+            <option>300</option>
+            <option>400</option>
+            <option>500</option>
+          </select>
+          <select id="course_semester">
+            <option value="">Semester</option>
+            <option value="1">1st</option>
+            <option value="2">2nd</option>
+          </select>
+          <button class="btn btn-gold" onclick="addCourse()">Add Course</button>
         </div>
         <div class="alert" id="course-alert"></div>
-    </div>
+      </div>
 
-    <div class="card">
+      <div class="card">
         <div class="card-title">📚 All Courses ({{ courses|length }})</div>
         <div class="filter-bar">
-            <input type="text" id="course_filter" placeholder="Search code or title..." onkeyup="filterCourses()">
-            <select id="course_level_filter" onchange="filterCourses()">
-                <option value="">All Levels</option>
-                <option value="100">100</option><option value="200">200</option>
-                <option value="300">300</option><option value="400">400</option>
-            </select>
-            <select id="course_sem_filter" onchange="filterCourses()">
-                <option value="">All Semesters</option>
-                <option value="1">1st Sem</option>
-                <option value="2">2nd Sem</option>
-            </select>
+          <input
+            type="text"
+            id="course_filter"
+            placeholder="Search code or title..."
+            onkeyup="filterCourses()"
+          />
+          <select id="course_level_filter" onchange="filterCourses()">
+            <option value="">All Levels</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+            <option value="300">300</option>
+            <option value="400">400</option>
+          </select>
+          <select id="course_sem_filter" onchange="filterCourses()">
+            <option value="">All Semesters</option>
+            <option value="1">1st Sem</option>
+            <option value="2">2nd Sem</option>
+          </select>
         </div>
         <!-- Mobile -->
         <div class="item-list mobile-only" id="courses_mobile">
-            {% for c in courses %}
-            <div class="item-row course-item" data-code="{{ c.code|lower }}" data-title="{{ c.title|lower }}" data-level="{{ c.level }}" data-semester="{{ c.semester }}">
-                <div>
-                    <div class="item-name" style="color:var(--blue)">{{ c.code }}</div>
-                    <div class="item-sub">{{ c.title }}</div>
-                    <div style="margin-top:4px;display:flex;gap:6px">
-                        <span class="badge info">L{{ c.level }}</span>
-                        <span class="badge info">Sem {{ c.semester }}</span>
-                        <span style="font-size:10px;color:var(--muted)">{{ c.department.name }}</span>
-                    </div>
-                </div>
-                <button class="btn btn-red btn-sm" onclick="deleteCourse({{ c.id }},'{{ c.code }}')">Del</button>
+          {% for c in courses %}
+          <div
+            class="item-row course-item"
+            data-code="{{ c.code|lower }}"
+            data-title="{{ c.title|lower }}"
+            data-level="{{ c.level }}"
+            data-semester="{{ c.semester }}"
+          >
+            <div>
+              <div class="item-name" style="color: var(--blue)">
+                {{ c.code }}
+              </div>
+              <div class="item-sub">{{ c.title }}</div>
+              <div style="margin-top: 4px; display: flex; gap: 6px">
+                <span class="badge info">L{{ c.level }}</span>
+                <span class="badge info">Sem {{ c.semester }}</span>
+                <span style="font-size: 10px; color: var(--muted)"
+                  >{{ c.department.name }}</span
+                >
+              </div>
             </div>
-            {% else %}
-            <div class="empty">No courses yet</div>
-            {% endfor %}
+            <button
+              class="btn btn-red btn-sm"
+              onclick="deleteCourse({{ c.id }},'{{ c.code }}')"
+            >
+              Del
+            </button>
+          </div>
+          {% else %}
+          <div class="empty">No courses yet</div>
+          {% endfor %}
         </div>
         <!-- Desktop -->
         <div class="desktop-table">
-            <table>
-                <thead><tr><th>Code</th><th>Title</th><th>Level</th><th>Sem</th><th>Department</th><th>Action</th></tr></thead>
-                <tbody id="courses_table">
-                    {% for c in courses %}
-                    <tr class="course-row" data-code="{{ c.code|lower }}" data-title="{{ c.title|lower }}" data-level="{{ c.level }}" data-semester="{{ c.semester }}">
-                        <td style="color:var(--blue);font-weight:700">{{ c.code }}</td>
-                        <td>{{ c.title }}</td>
-                        <td><span class="badge info">{{ c.level }}</span></td>
-                        <td>{{ c.semester }}</td>
-                        <td>{{ c.department.name }}</td>
-                        <td><button class="btn btn-red btn-sm" onclick="deleteCourse({{ c.id }},'{{ c.code }}')">Delete</button></td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="6" class="empty">No courses yet</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Title</th>
+                <th>Level</th>
+                <th>Sem</th>
+                <th>Department</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="courses_table">
+              {% for c in courses %}
+              <tr
+                class="course-row"
+                data-code="{{ c.code|lower }}"
+                data-title="{{ c.title|lower }}"
+                data-level="{{ c.level }}"
+                data-semester="{{ c.semester }}"
+              >
+                <td style="color: var(--blue); font-weight: 700">
+                  {{ c.code }}
+                </td>
+                <td>{{ c.title }}</td>
+                <td><span class="badge info">{{ c.level }}</span></td>
+                <td>{{ c.semester }}</td>
+                <td>{{ c.department.name }}</td>
+                <td>
+                  <button
+                    class="btn btn-red btn-sm"
+                    onclick="deleteCourse({{ c.id }},'{{ c.code }}')"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="6" class="empty">No courses yet</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- STUDENTS -->
-<div class="tab-content" id="tab-students">
-    <div class="card">
+    <!-- STUDENTS -->
+    <div class="tab-content" id="tab-students">
+      <div class="card">
         <div class="card-title">🎓 All Students ({{ students|length }})</div>
         <div class="filter-bar">
-            <input type="text" id="student_filter" placeholder="Search name or matric..." onkeyup="filterStudents()">
+          <input
+            type="text"
+            id="student_filter"
+            placeholder="Search name or matric..."
+            onkeyup="filterStudents()"
+          />
         </div>
         <!-- Mobile -->
         <div class="item-list mobile-only" id="students_mobile">
-            {% for s in students %}
-            <div class="item-row student-item" data-name="{{ s.full_name|lower }}" data-matric="{{ s.matric_no|lower }}">
-                <div style="flex:1;min-width:0">
-                    <div class="item-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.full_name }}</div>
-                    <div class="item-sub">{{ s.matric_no }}</div>
-                    <div class="item-sub">{{ s.department_rel.name if s.department_rel else 'N/A' }} · {{ s.level or 'N/A' }} Level</div>
-                    <span class="badge {% if s.device_hash %}active{% else %}info{% endif %}" style="margin-top:4px">{{ '📱 Bound' if s.device_hash else '⚠️ Unbound' }}</span>
-                </div>
-                <div class="item-actions" style="flex-direction:column">
-                    <button class="btn btn-blue btn-sm" onclick="adminResetDevice({{ s.id }},'{{ s.full_name }}')">🔄</button>
-                    <button class="btn btn-red btn-sm" onclick="adminDeleteStudent({{ s.id }},'{{ s.full_name }}')">🗑️</button>
-                </div>
+          {% for s in students %}
+          <div
+            class="item-row student-item"
+            data-name="{{ s.full_name|lower }}"
+            data-matric="{{ s.matric_no|lower }}"
+          >
+            <div style="flex: 1; min-width: 0">
+              <div
+                class="item-name"
+                style="
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                "
+              >
+                {{ s.full_name }}
+              </div>
+              <div class="item-sub">{{ s.matric_no }}</div>
+              <div class="item-sub">
+                {{ s.department_rel.name if s.department_rel else 'N/A' }} · {{
+                s.level or 'N/A' }} Level
+              </div>
+              <span
+                class="badge {% if s.device_hash %}active{% else %}info{% endif %}"
+                style="margin-top: 4px"
+                >{{ '📱 Bound' if s.device_hash else '⚠️ Unbound' }}</span
+              >
             </div>
-            {% else %}
-            <div class="empty">No students registered</div>
-            {% endfor %}
+            <div class="item-actions" style="flex-direction: column">
+              <button
+                class="btn btn-blue btn-sm"
+                onclick="adminResetDevice({{ s.id }},'{{ s.full_name }}')"
+              >
+                🔄
+              </button>
+              <button
+                class="btn btn-red btn-sm"
+                onclick="adminDeleteStudent({{ s.id }},'{{ s.full_name }}')"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+          {% else %}
+          <div class="empty">No students registered</div>
+          {% endfor %}
         </div>
         <!-- Desktop -->
         <div class="desktop-table">
-            <table>
-                <thead><tr><th>Name</th><th>Matric No</th><th>Department</th><th>Level</th><th>Device</th><th>Actions</th></tr></thead>
-                <tbody id="students_table">
-                    {% for s in students %}
-                    <tr class="student-row" data-name="{{ s.full_name|lower }}" data-matric="{{ s.matric_no|lower }}">
-                        <td>{{ s.full_name }}</td>
-                        <td>{{ s.matric_no }}</td>
-                        <td>{{ s.department_rel.name if s.department_rel else 'N/A' }}</td>
-                        <td>{{ s.level or 'N/A' }}</td>
-                        <td><span class="badge {% if s.device_hash %}active{% else %}info{% endif %}">{{ '📱 Bound' if s.device_hash else '⚠️ Unbound' }}</span></td>
-                        <td>
-                            <div class="td-actions">
-                                <button class="btn btn-blue btn-sm" onclick="adminResetDevice({{ s.id }},'{{ s.full_name }}')">🔄 Reset</button>
-                                <button class="btn btn-red btn-sm" onclick="adminDeleteStudent({{ s.id }},'{{ s.full_name }}')">🗑️ Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="6" class="empty">No students registered</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Matric No</th>
+                <th>Department</th>
+                <th>Level</th>
+                <th>Device</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="students_table">
+              {% for s in students %}
+              <tr
+                class="student-row"
+                data-name="{{ s.full_name|lower }}"
+                data-matric="{{ s.matric_no|lower }}"
+              >
+                <td>{{ s.full_name }}</td>
+                <td>{{ s.matric_no }}</td>
+                <td>
+                  {{ s.department_rel.name if s.department_rel else 'N/A' }}
+                </td>
+                <td>{{ s.level or 'N/A' }}</td>
+                <td>
+                  <span
+                    class="badge {% if s.device_hash %}active{% else %}info{% endif %}"
+                    >{{ '📱 Bound' if s.device_hash else '⚠️ Unbound' }}</span
+                  >
+                </td>
+                <td>
+                  <div class="td-actions">
+                    <button
+                      class="btn btn-blue btn-sm"
+                      onclick="adminResetDevice({{ s.id }},'{{ s.full_name }}')"
+                    >
+                      🔄 Reset
+                    </button>
+                    <button
+                      class="btn btn-red btn-sm"
+                      onclick="adminDeleteStudent({{ s.id }},'{{ s.full_name }}')"
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="6" class="empty">No students registered</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- LECTURERS -->
-<div class="tab-content" id="tab-lecturers">
-    <div class="card">
+    <!-- LECTURERS -->
+    <div class="tab-content" id="tab-lecturers">
+      <div class="card">
         <div class="card-title">👨‍🏫 All Lecturers ({{ lecturers|length }})</div>
         <div class="filter-bar">
-            <input type="text" id="lecturer_filter" placeholder="Search name or email..." onkeyup="filterLecturers()">
+          <input
+            type="text"
+            id="lecturer_filter"
+            placeholder="Search name or email..."
+            onkeyup="filterLecturers()"
+          />
         </div>
         <!-- Mobile -->
         <div class="item-list mobile-only" id="lecturers_mobile">
-            {% for l in lecturers %}
-            <div class="item-row lecturer-item" data-name="{{ l.full_name|lower }}" data-email="{{ l.email|lower }}">
-                <div style="flex:1;min-width:0">
-                    <div class="item-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.full_name }}</div>
-                    <div class="item-sub">{{ l.email }}</div>
-                    <div class="item-sub">{{ l.department_rel.name if l.department_rel else 'N/A' }}</div>
-                    <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">
-                        {% for lc in l.lecturer_courses %}<span class="badge info">{{ lc.course.code }}</span>{% endfor %}
-                    </div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-gold btn-sm" onclick="openAssignCourseModal({{ l.id }}, '{{ l.full_name }}')">📚 Courses</button>
-                    <button class="btn btn-red btn-sm" onclick="adminDeleteLecturer({{ l.id }},'{{ l.full_name }}')">🗑️</button>
-                </div>
+          {% for l in lecturers %}
+          <div
+            class="item-row lecturer-item"
+            data-name="{{ l.full_name|lower }}"
+            data-email="{{ l.email|lower }}"
+          >
+            <div style="flex: 1; min-width: 0">
+              <div
+                class="item-name"
+                style="
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                "
+              >
+                {{ l.full_name }}
+              </div>
+              <div class="item-sub">{{ l.email }}</div>
+              <div class="item-sub">
+                {{ l.department_rel.name if l.department_rel else 'N/A' }}
+              </div>
+              <div
+                style="
+                  margin-top: 4px;
+                  display: flex;
+                  gap: 4px;
+                  flex-wrap: wrap;
+                "
+              >
+                {% for lc in l.lecturer_courses %}<span class="badge info"
+                  >{{ lc.course.code }}</span
+                >{% endfor %}
+              </div>
             </div>
-            {% else %}
-            <div class="empty">No lecturers registered</div>
-            {% endfor %}
+            <div class="item-actions">
+              <button
+                class="btn btn-gold btn-sm"
+                onclick="openAssignCourseModal({{ l.id }}, '{{ l.full_name }}')"
+              >
+                📚 Courses
+              </button>
+              <button
+                class="btn btn-red btn-sm"
+                onclick="adminDeleteLecturer({{ l.id }},'{{ l.full_name }}')"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+          {% else %}
+          <div class="empty">No lecturers registered</div>
+          {% endfor %}
         </div>
         <!-- Desktop -->
         <div class="desktop-table">
-            <table>
-                <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Courses</th><th>Actions</th></tr></thead>
-                <tbody id="lecturers_table">
-                    {% for l in lecturers %}
-                    <tr class="lecturer-row" data-name="{{ l.full_name|lower }}" data-email="{{ l.email|lower }}">
-                        <td>{{ l.full_name }}</td>
-                        <td>{{ l.email }}</td>
-                        <td>{{ l.department_rel.name if l.department_rel else 'N/A' }}</td>
-                        <td>
-                            {% for lc in l.lecturer_courses %}<span class="badge info" style="margin-right:3px">{{ lc.course.code }}</span>{% endfor %}
-                        </td>
-                        <td>
-                            <button class="btn btn-gold btn-sm" onclick="openAssignCourseModal({{ l.id }}, '{{ l.full_name }}')">📚 Courses</button>
-                            <button class="btn btn-red btn-sm" onclick="adminDeleteLecturer({{ l.id }},'{{ l.full_name }}')">🗑️</button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="5" class="empty">No lecturers registered</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Courses</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="lecturers_table">
+              {% for l in lecturers %}
+              <tr
+                class="lecturer-row"
+                data-name="{{ l.full_name|lower }}"
+                data-email="{{ l.email|lower }}"
+              >
+                <td>{{ l.full_name }}</td>
+                <td>{{ l.email }}</td>
+                <td>
+                  {{ l.department_rel.name if l.department_rel else 'N/A' }}
+                </td>
+                <td>
+                  {% for lc in l.lecturer_courses %}<span
+                    class="badge info"
+                    style="margin-right: 3px"
+                    >{{ lc.course.code }}</span
+                  >{% endfor %}
+                </td>
+                <td>
+                  <button
+                    class="btn btn-gold btn-sm"
+                    onclick="openAssignCourseModal({{ l.id }}, '{{ l.full_name }}')"
+                  >
+                    📚 Courses
+                  </button>
+                  <button
+                    class="btn btn-red btn-sm"
+                    onclick="adminDeleteLecturer({{ l.id }},'{{ l.full_name }}')"
+                  >
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="5" class="empty">No lecturers registered</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- Assign Course Modal -->
-<div class="modal-overlay" id="assignModal" style="display:none;">
-    <div class="modal">
-        <button style="position:absolute; top:12px; right:12px; background:none; border:1px solid var(--border); color:var(--text); border-radius:8px; padding:6px 10px; cursor:pointer;" onclick="closeAssignModal()">✕</button>
+    <!-- Assign Course Modal -->
+    <div class="modal-overlay" id="assignModal" style="display: none">
+      <div class="modal">
+        <button
+          style="
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+          "
+          onclick="closeAssignModal()"
+        >
+          ✕
+        </button>
         <h2 id="assignLecturerName"></h2>
-        <div id="assignCoursesList" style="margin:12px 0;"></div>
-        <hr style="border-color:var(--border); margin:16px 0;">
+        <div id="assignCoursesList" style="margin: 12px 0"></div>
+        <hr style="border-color: var(--border); margin: 16px 0" />
         <div class="card-title">Assign new course</div>
-        <select id="assignFacultySelect"><option value="">-- Faculty --</option></select>
-        <select id="assignDeptSelect" disabled><option value="">-- Department --</option></select>
-        <select id="assignLevelSelect" disabled><option value="">-- Level --</option></select>
-        <div id="availableCoursesAssign" style="margin-top:10px;"></div>
+        <select id="assignFacultySelect">
+          <option value="">-- Faculty --</option>
+        </select>
+        <select id="assignDeptSelect" disabled>
+          <option value="">-- Department --</option>
+        </select>
+        <select id="assignLevelSelect" disabled>
+          <option value="">-- Level --</option>
+        </select>
+        <div id="availableCoursesAssign" style="margin-top: 10px"></div>
         <div class="alert" id="assignAlert"></div>
+      </div>
     </div>
-</div>
 
-<script>
-// ── TABS ──
-function switchTab(tab, btn) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
-    if (btn) btn.classList.add('active');
-}
+    <script>
+      // ── TABS ──
+      function switchTab(tab, btn) {
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((t) => t.classList.remove("active"));
+        document.getElementById("tab-" + tab).classList.add("active");
+        if (btn) btn.classList.add("active");
+      }
 
-// ── ALERT ──
-function showAlert(id, msg, type) {
-    const el = document.getElementById(id);
-    el.textContent = msg; el.className = 'alert ' + type; el.style.display = 'block';
-    setTimeout(() => el.style.display = 'none', 3500);
-}
+      // ── ALERT ──
+      function showAlert(id, msg, type) {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.className = "alert " + type;
+        el.style.display = "block";
+        setTimeout(() => (el.style.display = "none"), 3500);
+      }
 
-// ── FACULTY ──
-function addFaculty() {
-    const name = document.getElementById('faculty_name').value.trim();
-    if (!name) return;
-    const fd = new FormData(); fd.append('name', name);
-    fetch('/admin/faculty/add', {method:'POST', body:fd}).then(r=>r.json()).then(d => {
-        showAlert('faculty-alert', d.message, d.success ? 'success' : 'error');
-        if (d.success) { document.getElementById('faculty_name').value = ''; location.reload(); }
-    });
-}
-function deleteFaculty(id, name) {
-    if (!confirm(`Delete faculty "${name}"? This will also delete all its departments and courses.`)) return;
-    fetch('/admin/faculty/delete/'+id, {method:'POST'}).then(r=>r.json()).then(d => {
-        if (d.success) location.reload();
-    });
-}
+      // ── FACULTY ──
+      function addFaculty() {
+        const name = document.getElementById("faculty_name").value.trim();
+        if (!name) return;
+        const fd = new FormData();
+        fd.append("name", name);
+        fetch("/admin/faculty/add", { method: "POST", body: fd })
+          .then((r) => r.json())
+          .then((d) => {
+            showAlert(
+              "faculty-alert",
+              d.message,
+              d.success ? "success" : "error",
+            );
+            if (d.success) {
+              document.getElementById("faculty_name").value = "";
+              location.reload();
+            }
+          });
+      }
+      function deleteFaculty(id, name) {
+        if (
+          !confirm(
+            `Delete faculty "${name}"? This will also delete all its departments and courses.`,
+          )
+        )
+          return;
+        fetch("/admin/faculty/delete/" + id, { method: "POST" })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.success) location.reload();
+          });
+      }
 
-// ── DEPARTMENT ──
-function addDepartment() {
-    const name = document.getElementById('dept_name').value.trim();
-    const fid = document.getElementById('dept_faculty_select').value;
-    if (!name || !fid) { showAlert('dept-alert','Select faculty and enter name','error'); return; }
-    const fd = new FormData(); fd.append('name', name); fd.append('faculty_id', fid);
-    fetch('/admin/department/add', {method:'POST', body:fd}).then(r=>r.json()).then(d => {
-        showAlert('dept-alert', d.message, d.success ? 'success' : 'error');
-        if (d.success) { document.getElementById('dept_name').value = ''; location.reload(); }
-    });
-}
-function deleteDepartment(id, name) {
-    if (!confirm(`Delete department "${name}"? This will delete all its courses too.`)) return;
-    fetch('/admin/department/delete/'+id, {method:'POST'}).then(r=>r.json()).then(d => {
-        if (d.success) location.reload();
-    });
-}
+      // ── DEPARTMENT ──
+      function addDepartment() {
+        const name = document.getElementById("dept_name").value.trim();
+        const fid = document.getElementById("dept_faculty_select").value;
+        if (!name || !fid) {
+          showAlert("dept-alert", "Select faculty and enter name", "error");
+          return;
+        }
+        const fd = new FormData();
+        fd.append("name", name);
+        fd.append("faculty_id", fid);
+        fetch("/admin/department/add", { method: "POST", body: fd })
+          .then((r) => r.json())
+          .then((d) => {
+            showAlert("dept-alert", d.message, d.success ? "success" : "error");
+            if (d.success) {
+              document.getElementById("dept_name").value = "";
+              location.reload();
+            }
+          });
+      }
+      function deleteDepartment(id, name) {
+        if (
+          !confirm(
+            `Delete department "${name}"? This will delete all its courses too.`,
+          )
+        )
+          return;
+        fetch("/admin/department/delete/" + id, { method: "POST" })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.success) location.reload();
+          });
+      }
 
-// ── COURSES ──
-function loadDepts(facSelId, deptSelId) {
-    const fid = document.getElementById(facSelId).value;
-    const dsel = document.getElementById(deptSelId);
-    dsel.innerHTML = '<option value="">— Department —</option>';
-    dsel.disabled = true;
-    if (!fid) return;
-    fetch('/api/departments/'+fid).then(r=>r.json()).then(data => {
-        data.forEach(d => { const o = document.createElement('option'); o.value=d.id; o.textContent=d.name; dsel.appendChild(o); });
-        dsel.disabled = false;
-    });
-}
-function addCourse() {
-    const code = document.getElementById('course_code').value.trim().toUpperCase();
-    const title = document.getElementById('course_title').value.trim();
-    const level = document.getElementById('course_level').value;
-    const semester = document.getElementById('course_semester').value;
-    const dept_id = document.getElementById('course_dept_sel').value;
-    if (!code || !title || !level || !semester || !dept_id) {
-        showAlert('course-alert','All fields are required','error'); return;
-    }
-    const fd = new FormData();
-    fd.append('code',code); fd.append('title',title); fd.append('level',level);
-    fd.append('semester',semester); fd.append('department_id',dept_id);
-    fetch('/admin/course/add', {method:'POST', body:fd}).then(r=>r.json()).then(d => {
-        showAlert('course-alert', d.message, d.success ? 'success' : 'error');
-        if (d.success) { ['course_code','course_title'].forEach(id=>document.getElementById(id).value=''); location.reload(); }
-    });
-}
-function deleteCourse(id, code) {
-    if (!confirm(`Delete course ${code}?`)) return;
-    fetch('/admin/course/delete/'+id, {method:'POST'}).then(r=>r.json()).then(d => { if(d.success) location.reload(); });
-}
-function filterCourses() {
-    const q = document.getElementById('course_filter').value.toLowerCase();
-    const lv = document.getElementById('course_level_filter').value;
-    const sm = document.getElementById('course_sem_filter').value;
-    [...document.querySelectorAll('.course-item,.course-row')].forEach(row => {
-        const match = (row.dataset.code.includes(q) || row.dataset.title.includes(q)) &&
-                      (!lv || row.dataset.level === lv) && (!sm || row.dataset.semester === sm);
-        row.style.display = match ? '' : 'none';
-    });
-}
+      // ── COURSES ──
+      function loadDepts(facSelId, deptSelId) {
+        const fid = document.getElementById(facSelId).value;
+        const dsel = document.getElementById(deptSelId);
+        dsel.innerHTML = '<option value="">— Department —</option>';
+        dsel.disabled = true;
+        if (!fid) return;
+        fetch("/api/departments/" + fid)
+          .then((r) => r.json())
+          .then((data) => {
+            data.forEach((d) => {
+              const o = document.createElement("option");
+              o.value = d.id;
+              o.textContent = d.name;
+              dsel.appendChild(o);
+            });
+            dsel.disabled = false;
+          });
+      }
+      function addCourse() {
+        const code = document
+          .getElementById("course_code")
+          .value.trim()
+          .toUpperCase();
+        const title = document.getElementById("course_title").value.trim();
+        const level = document.getElementById("course_level").value;
+        const semester = document.getElementById("course_semester").value;
+        const dept_id = document.getElementById("course_dept_sel").value;
+        if (!code || !title || !level || !semester || !dept_id) {
+          showAlert("course-alert", "All fields are required", "error");
+          return;
+        }
+        const fd = new FormData();
+        fd.append("code", code);
+        fd.append("title", title);
+        fd.append("level", level);
+        fd.append("semester", semester);
+        fd.append("department_id", dept_id);
+        fetch("/admin/course/add", { method: "POST", body: fd })
+          .then((r) => r.json())
+          .then((d) => {
+            showAlert(
+              "course-alert",
+              d.message,
+              d.success ? "success" : "error",
+            );
+            if (d.success) {
+              ["course_code", "course_title"].forEach(
+                (id) => (document.getElementById(id).value = ""),
+              );
+              location.reload();
+            }
+          });
+      }
+      function deleteCourse(id, code) {
+        if (!confirm(`Delete course ${code}?`)) return;
+        fetch("/admin/course/delete/" + id, { method: "POST" })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.success) location.reload();
+          });
+      }
+      function filterCourses() {
+        const q = document.getElementById("course_filter").value.toLowerCase();
+        const lv = document.getElementById("course_level_filter").value;
+        const sm = document.getElementById("course_sem_filter").value;
+        [...document.querySelectorAll(".course-item,.course-row")].forEach(
+          (row) => {
+            const match =
+              (row.dataset.code.includes(q) || row.dataset.title.includes(q)) &&
+              (!lv || row.dataset.level === lv) &&
+              (!sm || row.dataset.semester === sm);
+            row.style.display = match ? "" : "none";
+          },
+        );
+      }
 
-// ── STUDENTS ──
-function adminResetDevice(id, name) {
-    if (!confirm(`Reset device for ${name}?`)) return;
-    fetch('/admin/reset_device/'+id, {method:'POST'}).then(r=>r.json()).then(d => { alert(d.message); location.reload(); });
-}
-function adminDeleteStudent(id, name) {
-    if (!confirm(`Delete student ${name}? This cannot be undone.`)) return;
-    fetch('/admin/delete_student/'+id, {method:'POST'}).then(r=>r.json()).then(d => { if(d.success) location.reload(); });
-}
-function filterStudents() {
-    const q = document.getElementById('student_filter').value.toLowerCase();
-    [...document.querySelectorAll('.student-item,.student-row')].forEach(row => {
-        row.style.display = (row.dataset.name.includes(q) || row.dataset.matric.includes(q)) ? '' : 'none';
-    });
-}
+      // ── STUDENTS ──
+      function adminResetDevice(id, name) {
+        if (!confirm(`Reset device for ${name}?`)) return;
+        fetch("/admin/reset_device/" + id, { method: "POST" })
+          .then((r) => r.json())
+          .then((d) => {
+            alert(d.message);
+            location.reload();
+          });
+      }
+      function adminDeleteStudent(id, name) {
+        if (!confirm(`Delete student ${name}? This cannot be undone.`)) return;
+        fetch("/admin/delete_student/" + id, { method: "POST" })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.success) location.reload();
+          });
+      }
+      function filterStudents() {
+        const q = document.getElementById("student_filter").value.toLowerCase();
+        [...document.querySelectorAll(".student-item,.student-row")].forEach(
+          (row) => {
+            row.style.display =
+              row.dataset.name.includes(q) || row.dataset.matric.includes(q)
+                ? ""
+                : "none";
+          },
+        );
+      }
 
-// ── LECTURERS ──
-function adminDeleteLecturer(id, name) {
-    if (!confirm(`Delete lecturer ${name}?`)) return;
-    fetch('/admin/delete_lecturer/'+id, {method:'POST'}).then(r=>r.json()).then(d => { if(d.success) location.reload(); });
-}
-function filterLecturers() {
-    const q = document.getElementById('lecturer_filter').value.toLowerCase();
-    [...document.querySelectorAll('.lecturer-item,.lecturer-row')].forEach(row => {
-        row.style.display = (row.dataset.name.includes(q) || row.dataset.email.includes(q)) ? '' : 'none';
-    });
-}
+      // ── LECTURERS ──
+      function adminDeleteLecturer(id, name) {
+        if (!confirm(`Delete lecturer ${name}?`)) return;
+        fetch("/admin/delete_lecturer/" + id, { method: "POST" })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.success) location.reload();
+          });
+      }
+      function filterLecturers() {
+        const q = document
+          .getElementById("lecturer_filter")
+          .value.toLowerCase();
+        [...document.querySelectorAll(".lecturer-item,.lecturer-row")].forEach(
+          (row) => {
+            row.style.display =
+              row.dataset.name.includes(q) || row.dataset.email.includes(q)
+                ? ""
+                : "none";
+          },
+        );
+      }
 
-// ── GENERIC FILTER ──
-function filterList(inputId, listId, cls) {
-    const q = document.getElementById(inputId).value.toLowerCase();
-    document.querySelectorAll('#'+listId+' .item-row').forEach(row => {
-        row.style.display = row.querySelector('.'+cls).textContent.toLowerCase().includes(q) ? '' : 'none';
-    });
-}
+      // ── GENERIC FILTER ──
+      function filterList(inputId, listId, cls) {
+        const q = document.getElementById(inputId).value.toLowerCase();
+        document
+          .querySelectorAll("#" + listId + " .item-row")
+          .forEach((row) => {
+            row.style.display = row
+              .querySelector("." + cls)
+              .textContent.toLowerCase()
+              .includes(q)
+              ? ""
+              : "none";
+          });
+      }
 
-// ── LECTURER COURSE ASSIGNMENT ──
-let currentLecturerId = null;
+      // ── LECTURER COURSE ASSIGNMENT ──
+      let currentLecturerId = null;
 
-async function openAssignCourseModal(lecturerId, name) {
-    currentLecturerId = lecturerId;
-    document.getElementById('assignLecturerName').textContent = '📚 Courses for ' + name;
-    document.getElementById('assignModal').style.display = 'flex';
-    // Load assigned courses
-    const res = await fetch('/admin/lecturer_courses/' + lecturerId);
-    const data = await res.json();
-    let html = '<strong>Currently assigned:</strong> ';
-    if(data.success && data.courses.length > 0) {
-        html += data.courses.map(c => `<span class="badge info" style="margin:2px;">${c.code} <button onclick="removeLecturerCourse(${c.id})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;margin-left:4px;">×</button></span>`).join('');
-    } else {
-        html += 'None';
-    }
-    document.getElementById('assignCoursesList').innerHTML = html;
-    // Load all courses for assignment
-    loadAssignFaculties();
-}
+      async function openAssignCourseModal(lecturerId, name) {
+        currentLecturerId = lecturerId;
+        document.getElementById("assignLecturerName").textContent =
+          "📚 Courses for " + name;
+        document.getElementById("assignModal").style.display = "flex";
+        // Load assigned courses
+        const res = await fetch("/admin/lecturer_courses/" + lecturerId);
+        const data = await res.json();
+        let html = "<strong>Currently assigned:</strong> ";
+        if (data.success && data.courses.length > 0) {
+          html += data.courses
+            .map(
+              (c) =>
+                `<span class="badge info" style="margin:2px;">${c.code} <button onclick="removeLecturerCourse(${c.id})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;margin-left:4px;">×</button></span>`,
+            )
+            .join("");
+        } else {
+          html += "None";
+        }
+        document.getElementById("assignCoursesList").innerHTML = html;
+        // Load all courses for assignment
+        loadAssignFaculties();
+      }
 
-function closeAssignModal() {
-    document.getElementById('assignModal').style.display = 'none';
-}
+      function closeAssignModal() {
+        document.getElementById("assignModal").style.display = "none";
+      }
 
-async function loadAssignFaculties() {
-    const res = await fetch('/api/faculties');
-    const faculties = await res.json();
-    const select = document.getElementById('assignFacultySelect');
-    select.innerHTML = '<option value="">-- Faculty --</option>';
-    faculties.forEach(f => { const o = document.createElement('option'); o.value = f.id; o.textContent = f.name; select.appendChild(o); });
-}
+      async function loadAssignFaculties() {
+        const res = await fetch("/api/faculties");
+        const faculties = await res.json();
+        const select = document.getElementById("assignFacultySelect");
+        select.innerHTML = '<option value="">-- Faculty --</option>';
+        faculties.forEach((f) => {
+          const o = document.createElement("option");
+          o.value = f.id;
+          o.textContent = f.name;
+          select.appendChild(o);
+        });
+      }
 
-document.getElementById('assignFacultySelect').addEventListener('change', async (e) => {
-    const fid = e.target.value;
-    const deptSelect = document.getElementById('assignDeptSelect');
-    deptSelect.innerHTML = '<option value="">-- Department --</option>';
-    deptSelect.disabled = true;
-    document.getElementById('assignLevelSelect').innerHTML = '<option value="">-- Level --</option>';
-    document.getElementById('assignLevelSelect').disabled = true;
-    if(!fid) return;
-    const res = await fetch('/api/departments/'+fid);
-    const depts = await res.json();
-    depts.forEach(d => { const o = document.createElement('option'); o.value = d.id; o.textContent = d.name; deptSelect.appendChild(o); });
-    deptSelect.disabled = false;
-});
+      document
+        .getElementById("assignFacultySelect")
+        .addEventListener("change", async (e) => {
+          const fid = e.target.value;
+          const deptSelect = document.getElementById("assignDeptSelect");
+          deptSelect.innerHTML = '<option value="">-- Department --</option>';
+          deptSelect.disabled = true;
+          document.getElementById("assignLevelSelect").innerHTML =
+            '<option value="">-- Level --</option>';
+          document.getElementById("assignLevelSelect").disabled = true;
+          if (!fid) return;
+          const res = await fetch("/api/departments/" + fid);
+          const depts = await res.json();
+          depts.forEach((d) => {
+            const o = document.createElement("option");
+            o.value = d.id;
+            o.textContent = d.name;
+            deptSelect.appendChild(o);
+          });
+          deptSelect.disabled = false;
+        });
 
-document.getElementById('assignDeptSelect').addEventListener('change', async (e) => {
-    const did = e.target.value;
-    const levelSelect = document.getElementById('assignLevelSelect');
-    levelSelect.innerHTML = '<option value="">-- Level --</option>';
-    levelSelect.disabled = true;
-    if(!did) return;
-    const res = await fetch('/api/levels/'+did);
-    const levels = await res.json();
-    levels.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l + ' Level'; levelSelect.appendChild(o); });
-    levelSelect.disabled = false;
-});
+      document
+        .getElementById("assignDeptSelect")
+        .addEventListener("change", async (e) => {
+          const did = e.target.value;
+          const levelSelect = document.getElementById("assignLevelSelect");
+          levelSelect.innerHTML = '<option value="">-- Level --</option>';
+          levelSelect.disabled = true;
+          if (!did) return;
+          const res = await fetch("/api/levels/" + did);
+          const levels = await res.json();
+          levels.forEach((l) => {
+            const o = document.createElement("option");
+            o.value = l;
+            o.textContent = l + " Level";
+            levelSelect.appendChild(o);
+          });
+          levelSelect.disabled = false;
+        });
 
-document.getElementById('assignLevelSelect').addEventListener('change', loadAssignCourses);
+      document
+        .getElementById("assignLevelSelect")
+        .addEventListener("change", loadAssignCourses);
 
-async function loadAssignCourses() {
-    const fid = document.getElementById('assignFacultySelect').value;
-    const did = document.getElementById('assignDeptSelect').value;
-    const level = document.getElementById('assignLevelSelect').value;
-    if(!fid || !did || !level) return;
-    const url = `/api/all_courses?faculty_id=${fid}&department_id=${did}&level=${level}`;
-    const res = await fetch(url);
-    const courses = await res.json();
-    const container = document.getElementById('availableCoursesAssign');
-    if(courses.length === 0) {
-        container.innerHTML = '<div class="empty">No courses found</div>';
-        return;
-    }
-    container.innerHTML = courses.map(c => `<div class="item-row"><div><span class="item-name">${c.code}</span> - ${c.title}</div><button class="btn btn-gold btn-sm" onclick="assignLecturerCourse(${c.id})">Assign</button></div>`).join('');
-}
+      async function loadAssignCourses() {
+        const fid = document.getElementById("assignFacultySelect").value;
+        const did = document.getElementById("assignDeptSelect").value;
+        const level = document.getElementById("assignLevelSelect").value;
+        if (!fid || !did || !level) return;
+        const url = `/api/all_courses?faculty_id=${fid}&department_id=${did}&level=${level}`;
+        const res = await fetch(url);
+        const courses = await res.json();
+        const container = document.getElementById("availableCoursesAssign");
+        if (courses.length === 0) {
+          container.innerHTML = '<div class="empty">No courses found</div>';
+          return;
+        }
+        container.innerHTML = courses
+          .map(
+            (c) =>
+              `<div class="item-row"><div><span class="item-name">${c.code}</span> - ${c.title}</div><button class="btn btn-gold btn-sm" onclick="assignLecturerCourse(${c.id})">Assign</button></div>`,
+          )
+          .join("");
+      }
 
-async function assignLecturerCourse(courseId) {
-    const res = await fetch('/admin/assign_lecturer_course', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ lecturer_id: currentLecturerId, course_id: courseId })
-    });
-    const data = await res.json();
-    showAlert('assignAlert', data.message, data.success ? 'success' : 'error');
-    if(data.success) openAssignCourseModal(currentLecturerId, document.getElementById('assignLecturerName').textContent.replace('📚 Courses for ', ''));
-}
+      async function assignLecturerCourse(courseId) {
+        const res = await fetch("/admin/assign_lecturer_course", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lecturer_id: currentLecturerId,
+            course_id: courseId,
+          }),
+        });
+        const data = await res.json();
+        showAlert(
+          "assignAlert",
+          data.message,
+          data.success ? "success" : "error",
+        );
+        if (data.success)
+          openAssignCourseModal(
+            currentLecturerId,
+            document
+              .getElementById("assignLecturerName")
+              .textContent.replace("📚 Courses for ", ""),
+          );
+      }
 
-async function removeLecturerCourse(courseId) {
-    const res = await fetch('/admin/remove_lecturer_course', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ lecturer_id: currentLecturerId, course_id: courseId })
-    });
-    const data = await res.json();
-    showAlert('assignAlert', data.message, data.success ? 'success' : 'error');
-    if(data.success) openAssignCourseModal(currentLecturerId, document.getElementById('assignLecturerName').textContent.replace('📚 Courses for ', ''));
-}
+      async function removeLecturerCourse(courseId) {
+        const res = await fetch("/admin/remove_lecturer_course", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lecturer_id: currentLecturerId,
+            course_id: courseId,
+          }),
+        });
+        const data = await res.json();
+        showAlert(
+          "assignAlert",
+          data.message,
+          data.success ? "success" : "error",
+        );
+        if (data.success)
+          openAssignCourseModal(
+            currentLecturerId,
+            document
+              .getElementById("assignLecturerName")
+              .textContent.replace("📚 Courses for ", ""),
+          );
+      }
 
-// Close modal on overlay click
-document.getElementById('assignModal').addEventListener('click', function(e) {
-    if(e.target === this) closeAssignModal();
-});
-</script>
-</body>
+      // Close modal on overlay click
+      document
+        .getElementById("assignModal")
+        .addEventListener("click", function (e) {
+          if (e.target === this) closeAssignModal();
+        });
+    </script>
+  </body>
 </html>

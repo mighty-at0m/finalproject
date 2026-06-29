@@ -2,7 +2,10 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 import secrets
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_file, abort
+import logging
+from logging.handlers import RotatingFileHandler
+from functools import wraps
 from flask_bcrypt import Bcrypt
 from models import db, Student, Lecturer, Attendance, ClassSession, Faculty, Department, Course, LecturerCourse, Admin, StudentCourse, session_departments
 from datetime import datetime, timedelta
@@ -11,6 +14,20 @@ from sms_service import send_attendance_alert, send_absence_warning
 from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
+
+# ---- Logging setup (rotating file) ----
+logger = logging.getLogger('smart_attendance')
+logger.setLevel(logging.INFO)
+handler = RotatingFileHandler('app.log', maxBytes=5*1024*1024, backupCount=3)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+if app.debug:
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    logger.addHandler(console)
+
+app.config['PROPAGATE_EXCEPTIONS'] = True
 
 # ---- Temporary development secrets (REMOVE FOR PRODUCTION) ----
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-later')
@@ -126,7 +143,7 @@ def notify_absent_students_for_session(session_obj):
                 failed += 1
                 last_error = detail
         except Exception as e:
-            print(f"Absence SMS error for student {att.student_id}: {e}")
+            logger.exception(f"Absence SMS error for student {att.student_id}: {e}")
             failed += 1
             last_error = str(e)
     return sent, failed, last_error
@@ -137,6 +154,61 @@ def notify_absent_students_for_session_id(session_id):
     if not sess:
         return 0, 0, 'Session not found for SMS notification'
     return notify_absent_students_for_session(sess)
+
+
+def get_json_data():
+    """Safely get JSON data or abort with 400."""
+    data = request.get_json(silent=True)
+    if data is None:
+        abort(400, description='Invalid or missing JSON')
+    return data
+
+
+def login_required(role='student'):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if role == 'student' and 'student_id' not in session:
+                if request.is_json:
+                    return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+                return redirect(url_for('login'))
+            if role == 'lecturer' and 'lecturer_id' not in session:
+                if request.is_json:
+                    return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+                return redirect(url_for('lecturer_login'))
+            if role == 'admin' and 'admin_id' not in session:
+                if request.is_json:
+                    return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+                return redirect(url_for('admin_login'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+def db_transaction(f):
+    """Decorator to wrap routes that mutate the DB. Commits on success,
+    rolls back and logs on exception, and returns a JSON or HTML 500 response.
+    """
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            result = f(*args, **kwargs)
+            try:
+                db.session.commit()
+            except Exception:
+                # commit may be handled inside the route; ignore commit errors here
+                pass
+            return result
+        except Exception as e:
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+            logger.exception(f"Unhandled exception in {f.__name__}: {e}")
+            if request.is_json:
+                return jsonify({'success': False, 'message': 'Internal server error. Please try again later.'}), 500
+            return render_template('errors/500.html'), 500
+    return wrapper
 
 # ────────────── API endpoints ──────────────
 @app.route('/api/faculties')
@@ -231,6 +303,7 @@ def set_device_token():
     return render_template('set_device_token.html', token=token, redirect=redirect_url)
 
 @app.route('/register', methods=['GET', 'POST'])
+@db_transaction
 def register():
     if request.method == 'POST':
         full_name = request.form['full_name']
@@ -247,7 +320,6 @@ def register():
                           parent_phone=parent_phone, assigned_pattern='circle',
                           faculty_id=faculty_id, department_id=department_id, level=int(level) if level else None)
         db.session.add(student)
-        db.session.commit()
         return redirect(url_for('login'))
     return render_template('register.html')
 
@@ -403,10 +475,11 @@ def my_courses():
                            enrolled_courses=student.enrolled_courses)   # <-- ADD THIS
 
 @app.route('/enroll_course', methods=['POST'])
+@db_transaction
 def enroll_course():
     if 'student_id' not in session:
         return jsonify({'success': False, 'message': 'Not logged in'})
-    data = request.get_json()
+    data = get_json_data()
     course_id = data.get('course_id')
     student = db.session.get(Student, session['student_id'])
     course = db.session.get(Course, course_id)
@@ -415,27 +488,27 @@ def enroll_course():
     if course in student.enrolled_courses:
         return jsonify({'success': False, 'message': 'Already enrolled'})
     student.enrolled_courses.append(course)
-    db.session.commit()
     return jsonify({'success': True, 'message': f'Enrolled in {course.code}'})
 
 @app.route('/admin/remove_student_course', methods=['POST'])
+@db_transaction
 def admin_remove_student_course():
     if 'admin_id' not in session: return jsonify({'success': False, 'message': 'Unauthorized'})
-    data = request.get_json()
+    data = get_json_data()
     student = db.session.get(Student, data.get('student_id'))
     course = db.session.get(Course, data.get('course_id'))
     if not student or not course:
         return jsonify({'success': False, 'message': 'Invalid student or course'})
     if course in student.enrolled_courses:
         student.enrolled_courses.remove(course)
-        db.session.commit()
         return jsonify({'success': True, 'message': f'Removed {student.full_name} from {course.code}'})
     return jsonify({'success': False, 'message': 'Student not enrolled in this course'})
 
 @app.route('/lecturer/remove_student_course', methods=['POST'])
+@db_transaction
 def lecturer_remove_student_course():
     if 'lecturer_id' not in session: return jsonify({'success': False, 'message': 'Unauthorized'})
-    data = request.get_json()
+    data = get_json_data()
     lecturer = db.session.get(Lecturer, session['lecturer_id'])
     course = db.session.get(Course, data.get('course_id'))
     if not course or course not in [lc.course for lc in lecturer.lecturer_courses]:
@@ -444,18 +517,18 @@ def lecturer_remove_student_course():
     if not student: return jsonify({'success': False, 'message': 'Student not found'})
     if course in student.enrolled_courses:
         student.enrolled_courses.remove(course)
-        db.session.commit()
         return jsonify({'success': True, 'message': f'Removed {student.full_name} from {course.code}'})
     return jsonify({'success': False, 'message': 'Student not enrolled in this course'})
 
 # ────────────── Mark Attendance (student) ──────────────
 @app.route('/mark_attendance', methods=['GET', 'POST'])
+@login_required(role='student')
 def mark_attendance():
     if 'student_id' not in session:
         return redirect(url_for('login'))
     student = db.session.get(Student, session['student_id'])
     if request.method == 'POST':
-        data = request.get_json()
+        data = get_json_data()
         drawing_points = data.get('drawing_points', [])
         canvas_width = data.get('canvas_width', 500)
         canvas_height = data.get('canvas_height', 320)
@@ -513,7 +586,7 @@ def mark_attendance():
             try:
                 send_attendance_alert(student.full_name, student.parent_phone, course.code, 'present', att.timestamp)
             except Exception as e:
-                print(f"SMS error: {e}")
+                logger.exception(f"SMS error sending attendance alert for student {student.id}: {e}")
             return jsonify({'success': True, 'message': f'Attendance marked for {course.code}!'})
         else:
             reasons = []
@@ -547,6 +620,7 @@ def lecturer_login():
     return render_template('lecturer_login.html')
 
 @app.route('/lecturer/register', methods=['GET', 'POST'])
+@db_transaction
 def lecturer_register():
     if request.method == 'POST':
         email = request.form['email']
@@ -557,7 +631,6 @@ def lecturer_register():
         lecturer = Lecturer(full_name=request.form['full_name'], email=email, password=password,
                             department_id=department_id)
         db.session.add(lecturer)
-        db.session.commit()
         return redirect(url_for('lecturer_login'))
     faculties = Faculty.query.order_by(Faculty.name).all()
     return render_template('lecturer_register.html', faculties=faculties)
@@ -608,9 +681,8 @@ def lecturer_forgot_password():
     return render_template('forgot_password.html', step='1', role='lecturer')
 
 @app.route('/lecturer/dashboard')
+@login_required(role='lecturer')
 def lecturer_dashboard():
-    if 'lecturer_id' not in session:
-        return redirect(url_for('lecturer_login'))
     lecturer = db.session.get(Lecturer, session['lecturer_id'])
     my_courses = [lc.course for lc in lecturer.lecturer_courses]
 
@@ -631,10 +703,9 @@ def lecturer_dashboard():
 
 # ── Session management ──
 @app.route('/lecturer/set_session', methods=['POST'])
+@login_required(role='lecturer')
 def set_session():
-    if 'lecturer_id' not in session:
-        return jsonify({'success': False})
-    data = request.get_json(silent=True) or {}
+    data = get_json_data()
     pattern = data.get('pattern')
     lat = data.get('lat')
     lng = data.get('lng')
@@ -669,18 +740,17 @@ def set_session():
             try:
                 notify_absent_students_for_session_id(sid)
             except Exception as e:
-                print(f"Post-commit SMS notify error for session {sid}: {e}")
+                logger.exception(f"Post-commit SMS notify error for session {sid}: {e}")
         return jsonify({'success': True, 'session_id': session_id})
     except Exception as e:
         db.session.rollback()
-        print(f"Set session error: {e}")
-        return jsonify({'success': False, 'message': f'Failed to update session: {e}'})
+        logger.exception(f"Set session error: {e}")
+        return jsonify({'success': False, 'message': 'Failed to update session. Please try again later.'}), 500
 
 @app.route('/lecturer/mark_absent', methods=['POST'])
+@login_required(role='lecturer')
 def mark_absent():
-    if 'lecturer_id' not in session:
-        return jsonify({'success': False})
-    data = request.get_json(silent=True) or {}
+    data = get_json_data()
     session_id = data.get('session_id')
     try:
         active_session = db.session.get(ClassSession, session_id) if session_id else \
@@ -712,8 +782,8 @@ def mark_absent():
         })
     except Exception as e:
         db.session.rollback()
-        print(f"Mark absent error: {e}")
-        return jsonify({'success': False, 'message': f'Failed to end session: {e}'})
+        logger.exception(f"Mark absent error: {e}")
+        return jsonify({'success': False, 'message': 'Failed to end session. Please try again later.'}), 500
 
 # ── Lecturer search / reset device / all students ──
 @app.route('/lecturer/search_student')
@@ -742,13 +812,13 @@ def search_student():
         'sessions': sessions_list})
 
 @app.route('/lecturer/reset_device/<int:student_id>', methods=['POST'])
+@db_transaction
 def reset_device(student_id):
     if 'lecturer_id' not in session: return jsonify({'success': False})
     student = db.session.get(Student, student_id)
     if not student: return jsonify({'success': False, 'message': 'Student not found'})
     student.device_hash = None
     student.device_token = None
-    db.session.commit()
     return jsonify({'success': True, 'message': f'Device reset for {student.full_name}'})
 
 @app.route('/lecturer/all_students')
@@ -779,9 +849,10 @@ def lecturer_my_courses():
     return jsonify({'success': True, 'courses': courses})
 
 @app.route('/lecturer/add_course', methods=['POST'])
+@db_transaction
 def lecturer_add_course():
     if 'lecturer_id' not in session: return jsonify({'success': False, 'message': 'Not logged in'})
-    data = request.get_json()
+    data = get_json_data()
     course_id = data.get('course_id')
     lecturer = db.session.get(Lecturer, session['lecturer_id'])
     course = db.session.get(Course, course_id)
@@ -790,19 +861,18 @@ def lecturer_add_course():
         return jsonify({'success': False, 'message': 'Course already assigned'})
     lc = LecturerCourse(lecturer_id=lecturer.id, course_id=course.id)
     db.session.add(lc)
-    db.session.commit()
     return jsonify({'success': True, 'message': f'Course {course.code} added to your profile'})
 
 @app.route('/lecturer/remove_course', methods=['POST'])
+@db_transaction
 def lecturer_remove_course():
     if 'lecturer_id' not in session: return jsonify({'success': False, 'message': 'Not logged in'})
-    data = request.get_json()
+    data = get_json_data()
     course_id = data.get('course_id')
     lecturer = db.session.get(Lecturer, session['lecturer_id'])
     lc = LecturerCourse.query.filter_by(lecturer_id=lecturer.id, course_id=course_id).first()
     if not lc: return jsonify({'success': False, 'message': 'Course not in your list'})
     db.session.delete(lc)
-    db.session.commit()
     return jsonify({'success': True, 'message': 'Course removed'})
 
 # ── Lecturer student & attendance details ──
@@ -1140,39 +1210,40 @@ def admin_dashboard():
         lecturers=Lecturer.query.all())
 
 @app.route('/admin/faculty/add', methods=['POST'])
+@db_transaction
 def admin_add_faculty():
     if 'admin_id' not in session: return jsonify({'success': False})
     name = request.form.get('name', '').strip()
     if Faculty.query.filter_by(name=name).first():
         return jsonify({'success': False, 'message': 'Already exists'})
     db.session.add(Faculty(name=name))
-    db.session.commit()
     return jsonify({'success': True, 'message': 'Faculty added'})
 
 @app.route('/admin/faculty/delete/<int:fid>', methods=['POST'])
+@db_transaction
 def admin_delete_faculty(fid):
     if 'admin_id' not in session: return jsonify({'success': False})
     db.session.delete(Faculty.query.get_or_404(fid))
-    db.session.commit()
     return jsonify({'success': True})
 
 @app.route('/admin/department/add', methods=['POST'])
+@db_transaction
 def admin_add_department():
     if 'admin_id' not in session: return jsonify({'success': False})
     name = request.form.get('name', '').strip()
     faculty_id = int(request.form.get('faculty_id'))
     db.session.add(Department(name=name, faculty_id=faculty_id))
-    db.session.commit()
     return jsonify({'success': True, 'message': 'Department added'})
 
 @app.route('/admin/department/delete/<int:did>', methods=['POST'])
+@db_transaction
 def admin_delete_department(did):
     if 'admin_id' not in session: return jsonify({'success': False})
     db.session.delete(Department.query.get_or_404(did))
-    db.session.commit()
     return jsonify({'success': True})
 
 @app.route('/admin/course/add', methods=['POST'])
+@db_transaction
 def admin_add_course():
     if 'admin_id' not in session: return jsonify({'success': False})
     code = request.form.get('code', '').strip().upper()
@@ -1181,38 +1252,37 @@ def admin_add_course():
     semester = int(request.form.get('semester'))
     department_id = int(request.form.get('department_id'))
     db.session.add(Course(code=code, title=title, level=level, semester=semester, department_id=department_id))
-    db.session.commit()
     return jsonify({'success': True, 'message': 'Course added'})
 
 @app.route('/admin/course/delete/<int:cid>', methods=['POST'])
+@db_transaction
 def admin_delete_course(cid):
     if 'admin_id' not in session: return jsonify({'success': False})
     db.session.delete(Course.query.get_or_404(cid))
-    db.session.commit()
     return jsonify({'success': True})
 
 @app.route('/admin/reset_device/<int:student_id>', methods=['POST'])
+@db_transaction
 def admin_reset_device(student_id):
     if 'admin_id' not in session: return jsonify({'success': False})
     s = db.session.get(Student, student_id)
     if s:
         s.device_hash = None
         s.device_token = None
-        db.session.commit()
     return jsonify({'success': True, 'message': f'Device reset for {s.full_name}'})
 
 @app.route('/admin/delete_student/<int:student_id>', methods=['POST'])
+@db_transaction
 def admin_delete_student(student_id):
     if 'admin_id' not in session: return jsonify({'success': False})
     db.session.delete(Student.query.get_or_404(student_id))
-    db.session.commit()
     return jsonify({'success': True})
 
 @app.route('/admin/delete_lecturer/<int:lid>', methods=['POST'])
+@db_transaction
 def admin_delete_lecturer(lid):
     if 'admin_id' not in session: return jsonify({'success': False})
     db.session.delete(Lecturer.query.get_or_404(lid))
-    db.session.commit()
     return jsonify({'success': True})
 
     # ── Admin: manage lecturer-course assignments ──
@@ -1229,10 +1299,11 @@ def admin_lecturer_courses(lecturer_id):
     return jsonify({'success': True, 'courses': assigned})
 
 @app.route('/admin/assign_lecturer_course', methods=['POST'])
+@db_transaction
 def admin_assign_lecturer_course():
     if 'admin_id' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'})
-    data = request.get_json()
+    data = get_json_data()
     lecturer_id = data.get('lecturer_id')
     course_id = data.get('course_id')
     lecturer = db.session.get(Lecturer, lecturer_id)
@@ -1243,21 +1314,20 @@ def admin_assign_lecturer_course():
         return jsonify({'success': False, 'message': 'Already assigned'})
     lc = LecturerCourse(lecturer_id=lecturer_id, course_id=course_id)
     db.session.add(lc)
-    db.session.commit()
     return jsonify({'success': True, 'message': f'{course.code} assigned to {lecturer.full_name}'})
 
 @app.route('/admin/remove_lecturer_course', methods=['POST'])
+@db_transaction
 def admin_remove_lecturer_course():
     if 'admin_id' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'})
-    data = request.get_json()
+    data = get_json_data()
     lecturer_id = data.get('lecturer_id')
     course_id = data.get('course_id')
     lc = LecturerCourse.query.filter_by(lecturer_id=lecturer_id, course_id=course_id).first()
     if not lc:
         return jsonify({'success': False, 'message': 'Not assigned'})
     db.session.delete(lc)
-    db.session.commit()
     return jsonify({'success': True, 'message': 'Course removed'})
 
 # ── Admin: attendance report (CSV) ── you already have download_attendance,
@@ -1285,5 +1355,36 @@ def admin_course_stats(course_id):
     return jsonify({'success': True, 'course_code': course.code, 'course_title': course.title,
                     'sessions': session_data, 'total_enrolled': total_enrolled})
 
+
+# ---------- Global error handlers ----------
+@app.errorhandler(400)
+def bad_request(e):
+    logger.warning(f"Bad request: {getattr(e, 'description', str(e))}")
+    if request.is_json:
+        return jsonify({'success': False, 'message': 'Bad request'}), 400
+    return render_template('errors/400.html'), 400
+
+
+@app.errorhandler(404)
+def not_found(e):
+    logger.info(f"Not found: {request.path}")
+    if request.is_json:
+        return jsonify({'success': False, 'message': 'Not found'}), 404
+    return render_template('errors/404.html'), 404
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    try:
+        db.session.rollback()
+    except Exception:
+        pass
+    logger.exception('Internal server error')
+    if request.is_json:
+        return jsonify({'success': False, 'message': 'Internal server error. Please try again later.'}), 500
+    return render_template('errors/500.html'), 500
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Use FLASK_DEBUG=1 in environment to enable debug mode locally
+    debug = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(debug=debug)

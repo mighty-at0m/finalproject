@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glow Demo — Smart Attendance</title>
+  <style>
+    :root {
+      --red: #e94560;
+      --blue: #00b4d8;
+      --bg1: #0d1117;
+      --glass: rgba(255,255,255,0.04);
+      --text: #f0f6fc;
+    }
+    * { box-sizing: border-box; }
+    html,body { height:100%; }
+    body {
+      margin:0; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: var(--bg1); color:var(--text); overflow:hidden; display:flex; align-items:center; justify-content:center;
+    }
+
+    /* ── Corner Glows (pulse + ripple) ── */
+    body::before, body::after {
+        content: '';
+        position: fixed;
+        width: 260px;
+        height: 260px;
+        border-radius: 50%;
+        filter: blur(40px);
+        pointer-events: none;
+        z-index: 0;
+        animation: glowPulse 6s ease-in-out infinite, glowRipple 8s linear infinite;
+        will-change: transform, opacity;
+    }
+
+    body::before {
+        top: -100px;
+        left: -100px;
+        background: radial-gradient(circle, rgba(233,69,96,0.35) 0%, transparent 70%);
+        animation-delay: 0s, 0s;
+    }
+
+    body::after {
+        right: -100px;
+        bottom: -100px;
+        background: radial-gradient(circle, rgba(0,180,216,0.3) 0%, transparent 70%);
+        animation-delay: -3s, 2s;
+    }
+
+    /* Breathing pulse */
+    @keyframes glowPulse {
+        0%, 100% { transform: scale(1); opacity: 0.8; }
+        50%      { transform: scale(1.2); opacity: 1; }
+    }
+
+    /* Slow drift + ripple */
+    @keyframes glowRipple {
+        0%   { transform: translate(0, 0) scale(1); }
+        25%  { transform: translate(-12px, 10px) scale(1.05); }
+        50%  { transform: translate(10px, -8px) scale(0.95); }
+        75%  { transform: translate(6px, 14px) scale(1.02); }
+        100% { transform: translate(0, 0) scale(1); }
+    }
+
+    /* Mobile tweak */
+    @media (max-width: 768px) {
+        body::before, body::after { filter: blur(34px); animation-duration: 7s, 10s; }
+    }
+
+    /* Demo area */
+    .demo-wrap { position: relative; z-index: 1; width: 100%; max-width: 920px; padding: 48px; display:flex; align-items:center; justify-content:center; }
+
+    /* Ripple container (enabled) */
+    .ripple-container { position: relative; border-radius: 18px; }
+    .ripple-card {
+      width: 360px; padding: 28px; border-radius: 18px; background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.04); position: relative; z-index: 2;
+      backdrop-filter: blur(8px);
+    }
+    .ripple-container::before {
+        content: '';
+        position: absolute;
+        inset: -20px;
+        border-radius: inherit;
+        background: radial-gradient(circle at 50% 50%, rgba(233,69,96,0.08), transparent 60%);
+        animation: ripple 4s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 1;
+    }
+    @keyframes ripple {
+        0%   { transform: scale(0.8); opacity: 0.5; }
+        50%  { transform: scale(1.15); opacity: 0.18; }
+        100% { transform: scale(0.8); opacity: 0.5; }
+    }
+
+    .title { font-size: 20px; font-weight:700; margin-bottom: 12px; color:var(--text); }
+    .desc { color: rgba(240,246,252,0.7); font-size:13px; margin-bottom:18px; }
+    .btn { display:inline-block; padding:10px 14px; border-radius:10px; background: linear-gradient(90deg,var(--red), var(--blue)); color:#071018; font-weight:600; text-decoration:none; }
+
+    /* Helpful: allow demo to scroll on small viewports */
+    @media (max-height: 540px) { body { align-items:flex-start; padding-top:36px; } }
+  </style>
+</head>
+<body>
+  <div class="demo-wrap">
+    <div class="ripple-container">
+      <div class="ripple-card">
+        <div class="title">Premium Glow Demo</div>
+        <div class="desc">Corner glows (breathing + drift) with a subtle ripple behind this card. Resize to see mobile tweaks.</div>
+        <a class="btn" href="#">Try it</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,50 +1,455 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Admin Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root{--gold:#f4a261;--bg1:#0d1117;--glass:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--text:#f0f6fc;--muted:rgba(240,246,252,0.5)}
-        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-        body{font-family:'Space Grotesk',sans-serif;background:var(--bg1);color:var(--text);min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:radial-gradient(ellipse at center,rgba(244,162,97,0.08) 0%,transparent 60%),var(--bg1)}
-        .container{width:100%;max-width:400px;background:var(--glass);border:1px solid var(--border);border-radius:24px;padding:36px 28px}
-        .logo{text-align:center;margin-bottom:28px}
-        .logo-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--gold),#e76f51);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px;box-shadow:0 8px 32px rgba(244,162,97,0.25)}
-        .logo h1{font-size:22px;font-weight:700}
-        .logo p{font-size:13px;color:var(--muted);margin-top:4px}
-        .badge{display:inline-block;background:rgba(244,162,97,0.1);border:1px solid rgba(244,162,97,0.2);color:var(--gold);font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;margin-top:8px;letter-spacing:0.06em}
-        .form-group{margin-bottom:16px}
-        label{font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em}
-        input{width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-family:inherit;outline:none;transition:border-color 0.2s;-webkit-appearance:none}
-        input:focus{border-color:var(--gold)}
-        input::placeholder{color:rgba(255,255,255,0.2)}
-        .btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),#e76f51);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 4px 20px rgba(244,162,97,0.3);margin-top:8px;transition:transform 0.1s}
-        .btn:active{transform:scale(0.98)}
-        .error{background:rgba(233,69,96,0.1);border:1px solid rgba(233,69,96,0.3);color:#ff8099;padding:12px;border-radius:10px;font-size:13px;margin-bottom:16px;text-align:center}
-        .back-links{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
-        .back-links a{font-size:12px;color:var(--muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:8px}
+      :root {
+        --gold: #f4a261;
+        --bg1: #0d1117;
+        --glass: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #f0f6fc;
+        --muted: rgba(240, 246, 252, 0.5);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        background: var(--bg1);
+        color: var(--text);
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+        background:
+          radial-gradient(
+            ellipse at center,
+            rgba(244, 162, 97, 0.08) 0%,
+            transparent 60%
+          ),
+          var(--bg1);
+        position: relative;
+        background-size:
+          140% 140%,
+          auto;
+        animation: bgFloat 16s ease-in-out infinite;
+      }
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        filter: blur(40px);
+        pointer-events: none;
+        z-index: 0;
+        animation: drift 11s ease-in-out infinite;
+        will-change: transform, opacity;
+      }
+      body::before {
+        top: -85px;
+        left: -90px;
+        background: rgba(244, 162, 97, 0.18);
+      }
+      body::after {
+        right: -100px;
+        bottom: -100px;
+        background: rgba(231, 111, 81, 0.14);
+        animation-delay: -4s;
+      }
+      .container {
+        width: 100%;
+        max-width: 400px;
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 36px 28px;
+        position: relative;
+        z-index: 1;
+        animation: floatIn 0.7s ease both;
+        overflow: hidden;
+      }
+      .container::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        border-radius: inherit;
+        padding: 1px;
+        background: linear-gradient(
+          120deg,
+          rgba(255, 255, 255, 0.32),
+          rgba(244, 162, 97, 0.34),
+          rgba(231, 111, 81, 0.24),
+          rgba(255, 255, 255, 0.24)
+        );
+        background-size: 220% 220%;
+        animation: borderFlow 7s linear infinite;
+        -webkit-mask:
+          linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+      .container::after {
+        content: "";
+        position: absolute;
+        top: -120%;
+        left: -30%;
+        width: 60%;
+        height: 260%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transform: rotate(18deg);
+        animation: sheen 5.8s ease-in-out infinite;
+        pointer-events: none;
+      }
+      .logo {
+        text-align: center;
+        margin-bottom: 28px;
+        animation: fadeUp 0.45s ease both;
+      }
+      .logo-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, var(--gold), #e76f51);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin: 0 auto 14px;
+        box-shadow: 0 8px 32px rgba(244, 162, 97, 0.25);
+        animation: iconPulse 3.2s ease-in-out infinite;
+        position: relative;
+        isolation: isolate;
+        will-change: transform, box-shadow;
+      }
+      .logo-icon::before,
+      .logo-icon::after {
+        content: "";
+        position: absolute;
+        inset: -8px;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        opacity: 0;
+        pointer-events: none;
+        animation: ringPulse 2.8s ease-out infinite;
+      }
+      .logo-icon::after {
+        inset: -16px;
+        border-color: rgba(244, 162, 97, 0.35);
+        animation-delay: 1.2s;
+      }
+      .logo h1 {
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .logo p {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .badge {
+        display: inline-block;
+        background: rgba(244, 162, 97, 0.1);
+        border: 1px solid rgba(244, 162, 97, 0.2);
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-top: 8px;
+        letter-spacing: 0.06em;
+      }
+      .form-group {
+        margin-bottom: 16px;
+        opacity: 0;
+        transform: translateY(8px);
+        animation: fadeUp 0.42s ease forwards;
+      }
+      .form-group:nth-child(1) {
+        animation-delay: 0.14s;
+      }
+      .form-group:nth-child(2) {
+        animation-delay: 0.22s;
+      }
+      label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      input {
+        width: 100%;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        color: var(--text);
+        font-size: 16px;
+        font-family: inherit;
+        outline: none;
+        transition:
+          border-color 0.22s,
+          background 0.22s,
+          transform 0.22s,
+          box-shadow 0.22s;
+        -webkit-appearance: none;
+      }
+      input:focus {
+        border-color: var(--gold);
+        background: rgba(244, 162, 97, 0.06);
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(244, 162, 97, 0.14);
+      }
+      input::placeholder {
+        color: rgba(255, 255, 255, 0.2);
+      }
+      .btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--gold), #e76f51);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(244, 162, 97, 0.3);
+        margin-top: 8px;
+        transition:
+          transform 0.18s,
+          box-shadow 0.22s,
+          filter 0.2s;
+        animation: fadeUp 0.45s ease both;
+        animation-delay: 0.3s;
+        position: relative;
+        overflow: hidden;
+      }
+      .btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 120%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.26),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+      .btn:hover::before {
+        left: 120%;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 26px rgba(244, 162, 97, 0.38);
+        filter: brightness(1.03);
+      }
+      .btn:active {
+        transform: scale(0.98);
+      }
+      .error {
+        background: rgba(233, 69, 96, 0.1);
+        border: 1px solid rgba(233, 69, 96, 0.3);
+        color: #ff8099;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        margin-bottom: 16px;
+        text-align: center;
+      }
+      .back-links {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 16px;
+        flex-wrap: wrap;
+        animation: fadeUp 0.45s ease both;
+        animation-delay: 0.36s;
+      }
+      .back-links a {
+        font-size: 12px;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      @keyframes drift {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        50% {
+          transform: translate(16px, -12px) scale(1.05);
+        }
+      }
+      @keyframes bgFloat {
+        0%,
+        100% {
+          background-position:
+            0% 0%,
+            0 0;
+        }
+        50% {
+          background-position:
+            18% 8%,
+            0 0;
+        }
+      }
+      @keyframes borderFlow {
+        0% {
+          background-position: 0% 50%;
+        }
+        100% {
+          background-position: 200% 50%;
+        }
+      }
+      @keyframes sheen {
+        0%,
+        70%,
+        100% {
+          left: -80%;
+          opacity: 0;
+        }
+        12%,
+        38% {
+          opacity: 1;
+        }
+        45% {
+          left: 135%;
+          opacity: 0;
+        }
+      }
+      @keyframes iconPulse {
+        0%,
+        100% {
+          transform: translateY(0);
+          box-shadow: 0 8px 32px rgba(244, 162, 97, 0.25);
+        }
+        50% {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 36px rgba(244, 162, 97, 0.42);
+        }
+      }
+      @keyframes ringPulse {
+        0% {
+          transform: scale(0.94);
+          opacity: 0;
+        }
+        30% {
+          opacity: 0.35;
+        }
+        100% {
+          transform: scale(1.15);
+          opacity: 0;
+        }
+      }
+      @media (max-width: 768px) {
+        body::before,
+        body::after {
+          filter: blur(34px);
+        }
+        .logo-icon {
+          animation-duration: 2.8s;
+        }
+      }
+      @keyframes floatIn {
+        from {
+          opacity: 0;
+          transform: translateY(14px) scale(0.99);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
     </style>
-</head>
-<body>
-<div class="container">
-    <div class="logo">
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">
         <div class="logo-icon">⚙️</div>
         <h1>Admin Panel</h1>
         <p>Smart Attendance System</p>
         <span class="badge">ADMINISTRATOR</span>
-    </div>
-    {% if error %}<div class="error">{{ error }}</div>{% endif %}
-    <form method="POST">
-        <div class="form-group"><label>Username</label><input type="text" name="username" placeholder="admin" autocomplete="username" required></div>
-        <div class="form-group"><label>Password</label><input type="password" name="password" placeholder="Enter admin password" autocomplete="current-password" required></div>
+      </div>
+      {% if error %}
+      <div class="error">{{ error }}</div>
+      {% endif %}
+      <form method="POST">
+        <div class="form-group">
+          <label>Username</label
+          ><input
+            type="text"
+            name="username"
+            placeholder="admin"
+            autocomplete="username"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Password</label
+          ><input
+            type="password"
+            name="password"
+            placeholder="Enter admin password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
         <button type="submit" class="btn">Login to Admin Panel</button>
-    </form>
-    <div class="back-links">
+      </form>
+      <div class="back-links">
         <a href="/login">🎓 Student Portal</a>
         <a href="/lecturer/login">👨‍🏫 Lecturer Portal</a>
+      </div>
     </div>
-</div>
-</body>
+  </body>
 </html>

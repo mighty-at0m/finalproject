@@ -2,7 +2,8 @@
 {% block title %}Lecturer Dashboard – Session Control{% endblock %}
 {% block content %}
 <style>
-    .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+    #particle-network-dashboard { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.28; }
+    .container { max-width: 900px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
 
     /* ── Greeting ── */
     .welcome {
@@ -73,9 +74,15 @@
     /* Live feed */
     .student-feed { max-height: 200px; overflow-y: auto; margin-top: 10px; }
     .student-feed-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; }
+    .student-feed-item.just-arrived { animation: feedPulse 2s ease; }
     .badge.present { background: rgba(46,213,115,0.15); color: var(--green); padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    @keyframes feedPulse {
+        0% { background: rgba(46,213,115,0.2); }
+        100% { background: transparent; }
+    }
 </style>
 
+<canvas id="particle-network-dashboard"></canvas>
 <div class="container">
     <!-- Greeting -->
     <div class="welcome">
@@ -151,6 +158,7 @@
     let lecturerLat = null, lecturerLng = null;
     let activeSessionId = null;
     let liveInterval = null;
+    const seenFeedEntries = new Set();
 
     // Pattern selection
     document.querySelectorAll('.pattern-btn').forEach(btn => {
@@ -169,7 +177,7 @@
         container.innerHTML = '';
         if (!courseId) { deptArea.style.display = 'none'; return; }
         deptArea.style.display = 'block';
-        container.innerHTML = '<div class="empty" style="padding:10px;">Loading departments...</div>';
+        showSkeleton('deptChecklistContainer', 2);
         const res = await fetch(`/api/course_departments/${courseId}`);
         const departments = await res.json();
         if (departments.length === 0) {
@@ -358,7 +366,10 @@
             } else {
                 let html = '';
                 data.present_students.forEach(s => {
-                    html += `<div class="student-feed-item"><span>${s.name} (${s.matric_no})</span><span class="badge present">✓ ${s.timestamp}</span></div>`;
+                    const key = `${s.matric_no}-${s.timestamp}`;
+                    const isNew = !seenFeedEntries.has(key);
+                    seenFeedEntries.add(key);
+                    html += `<div class="student-feed-item ${isNew ? 'just-arrived' : ''}"><span>${s.name} (${s.matric_no})</span><span class="badge present">✓ ${s.timestamp}</span></div>`;
                 });
                 feedDiv.innerHTML = html;
             }
@@ -405,5 +416,73 @@
     // ── Initialization ──
     autoDetectLocation();
     checkActiveSession();
+    animateStatNumbers();
+
+    // Lightweight particle network backdrop (mobile-optimized)
+    (function() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const canvas = document.getElementById('particle-network-dashboard');
+        const ctx = canvas.getContext('2d');
+        const particles = [];
+        const isMobile = window.innerWidth <= 768;
+        const count = isMobile ? 20 : 32;
+        const linkDistance = isMobile ? 86 : 110;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function init() {
+            particles.length = 0;
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.28,
+                    vy: (Math.random() - 0.5) * 0.28
+                });
+            }
+        }
+
+        function tick() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 1.4, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,180,216,0.55)';
+                ctx.fill();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    const q = particles[j];
+                    const dist = Math.hypot(p.x - q.x, p.y - q.y);
+                    if (dist < linkDistance) {
+                        const alpha = (1 - dist / linkDistance) * 0.20;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(q.x, q.y);
+                        ctx.strokeStyle = `rgba(0,180,216,${alpha})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+
+        resize();
+        init();
+        tick();
+        window.addEventListener('resize', () => {
+            resize();
+            init();
+        });
+    })();
 </script>
 {% endblock %}

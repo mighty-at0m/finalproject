@@ -1,230 +1,503 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover"
+    />
     <title>{% block title %}Smart Attendance{% endblock %}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --red: #e94560;
-            --green: #2ed573;
-            --blue: #00b4d8;
-            --bg1: #0d1117;
-            --glass: rgba(255,255,255,0.04);
-            --border: rgba(255,255,255,0.08);
-            --text: #f0f6fc;
-            --muted: rgba(240,246,252,0.5);
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            font-family: 'Space Grotesk', sans-serif;
-            background: var(--bg1);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        /* Sidebar */
-        .sidebar {
-            position: fixed; top: 0; left: 0; width: 280px; height: 100%;
-            background: rgba(13, 17, 23, 0.98); backdrop-filter: blur(12px);
-            border-right: 1px solid var(--border); padding: 24px 16px;
-            transform: translateX(-100%); transition: transform 0.3s ease-in-out;
-            z-index: 1000; overflow-y: auto;
-        }
-        .sidebar.open { transform: translateX(0); }
-        .sidebar-brand { font-size: 18px; font-weight: 700; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-        .sidebar-nav { list-style: none; }
-        .sidebar-nav li { margin-bottom: 8px; }
-        .sidebar-nav a {
-            display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px;
-            color: var(--muted); text-decoration: none; transition: all 0.2s; font-size: 15px;
-        }
-        .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--glass); color: var(--red); }
-        .mobile-navbar {
-            position: sticky; top: 0; z-index: 100;
-            background: rgba(13, 17, 23, 0.95); backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border); padding: 12px 16px;
-            display: flex; align-items: center; gap: 12px;
-        }
-        .menu-toggle {
-            background: var(--glass); border: 1px solid var(--border); border-radius: 8px;
-            padding: 8px 12px; font-size: 18px; cursor: pointer; color: var(--text);
-            min-width: 44px; min-height: 44px;
-        }
-        .mobile-navbar h1 { font-size: 16px; font-weight: 600; flex: 1; }
-        .mobile-navbar .nav-right { display: flex; gap: 8px; }
-        .mobile-navbar a {
-            color: var(--muted); text-decoration: none; font-size: 13px;
-            padding: 6px 10px; background: var(--glass); border-radius: 8px;
-        }
-        .sidebar-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 999; display: none;
-        }
-        .sidebar-overlay.active { display: block; }
-        .main-content { width: 100%; min-height: 100vh; padding-bottom: 60px; }
-        @media (min-width: 768px) {
-            .mobile-navbar { display: none; }
-            .sidebar { transform: translateX(0); width: 260px; }
-            .main-content { margin-left: 260px; width: calc(100% - 260px); }
-            .sidebar-overlay { display: none !important; }
-        }
-        .container { padding: 20px 16px; max-width: 1200px; margin: 0 auto; }
+      :root {
+          --red: #e94560;
+          --green: #2ed573;
+          --blue: #00b4d8;
+          --bg1: #0d1117;
+          --glass: rgba(255,255,255,0.04);
+          --border: rgba(255,255,255,0.08);
+          --text: #f0f6fc;
+          --muted: rgba(240,246,252,0.5);
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      body {
+          font-family: 'Space Grotesk', sans-serif;
+          background: var(--bg1);
+          color: var(--text);
+          min-height: 100vh;
+          overflow-x: hidden;
+      }
+      /* Sidebar */
+      .sidebar {
+          position: fixed; top: 0; left: 0; width: 280px; height: 100%;
+          background: rgba(13, 17, 23, 0.98); backdrop-filter: blur(12px);
+          border-right: 1px solid var(--border); padding: 24px 16px;
+          transform: translateX(-100%); transition: transform 0.3s ease-in-out;
+          z-index: 1000; overflow-y: auto;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-brand { font-size: 18px; font-weight: 700; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+      .sidebar-nav { list-style: none; }
+      .sidebar-nav li { margin-bottom: 8px; }
+      .sidebar-nav a {
+          display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px;
+          color: var(--muted); text-decoration: none; transition: all 0.2s; font-size: 15px;
+      }
+      .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--glass); color: var(--red); }
+      .mobile-navbar {
+          position: sticky; top: 0; z-index: 100;
+          background: rgba(13, 17, 23, 0.95); backdrop-filter: blur(20px);
+          border-bottom: 1px solid var(--border); padding: 12px 16px;
+          display: flex; align-items: center; gap: 12px;
+      }
+      .menu-toggle {
+          background: var(--glass); border: 1px solid var(--border); border-radius: 8px;
+          padding: 8px 12px; font-size: 18px; cursor: pointer; color: var(--text);
+          min-width: 44px; min-height: 44px;
+      }
+      .mobile-navbar h1 { font-size: 16px; font-weight: 600; flex: 1; }
+      .mobile-navbar .nav-right { display: flex; gap: 8px; }
+      .mobile-navbar a {
+          color: var(--muted); text-decoration: none; font-size: 13px;
+          padding: 6px 10px; background: var(--glass); border-radius: 8px;
+      }
+      .sidebar-overlay {
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.6); z-index: 999; display: none;
+      }
+      .sidebar-overlay.active { display: block; }
+      .main-content {
+          width: 100%;
+          min-height: 100vh;
+          padding-bottom: 60px;
+          animation: pageIn 0.25s ease both;
+      }
+      @keyframes pageIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+      }
+      @media (min-width: 768px) {
+          .mobile-navbar { display: none; }
+          .sidebar { transform: translateX(0); width: 260px; }
+          .main-content { margin-left: 260px; width: calc(100% - 260px); }
+          .sidebar-overlay { display: none !important; }
+      }
+      .container { padding: 20px 16px; max-width: 1200px; margin: 0 auto; }
 
-        /* ── Preloader ── */
-        #preloader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0d1117; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 9999;
-            opacity: 1; visibility: visible;
-            transition: opacity 0.3s ease, visibility 0.3s;
-        }
-        #preloader.hidden { opacity: 0; visibility: hidden; }
-        .preloader-logo {
-            font-size: 48px; margin-bottom: 20px;
-            animation: pulse 1.5s infinite;
-        }
-        .preloader-text {
-            font-size: 20px; font-weight: 700; color: var(--blue);
-            letter-spacing: 0.1em; margin-bottom: 20px;
-        }
-        .preloader-spinner {
-            width: 40px; height: 40px;
-            border: 4px solid rgba(255,255,255,0.1);
-            border-top-color: var(--blue); border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.8; }
-        }
+      /* Mobile touch feedback */
+      .btn, .nav-btn, .course-card, .student-card, .session-card, .stat-card {
+          transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+          will-change: transform;
+      }
+      .btn:active, .nav-btn:active, .course-card:active, .student-card:active, .session-card:active, .stat-card:active {
+          transform: scale(0.96);
+      }
 
-        /* AJAX Spinner */
-        .ajax-spinner {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; padding: 30px; color: var(--muted); gap: 12px;
-        }
-        .ajax-spinner .mini-spinner {
-            width: 28px; height: 28px;
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top-color: var(--blue); border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-        }
+      /* Staggered entrance for cards */
+      .course-card, .student-card, .session-card {
+          animation: cardSlideUp 0.45s ease both;
+      }
+      .course-card:nth-child(1), .student-card:nth-child(1), .session-card:nth-child(1) { animation-delay: 0.03s; }
+      .course-card:nth-child(2), .student-card:nth-child(2), .session-card:nth-child(2) { animation-delay: 0.08s; }
+      .course-card:nth-child(3), .student-card:nth-child(3), .session-card:nth-child(3) { animation-delay: 0.13s; }
+      .course-card:nth-child(4), .student-card:nth-child(4), .session-card:nth-child(4) { animation-delay: 0.18s; }
+      .course-card:nth-child(5), .student-card:nth-child(5), .session-card:nth-child(5) { animation-delay: 0.23s; }
+      .course-card:nth-child(6), .student-card:nth-child(6), .session-card:nth-child(6) { animation-delay: 0.28s; }
+      .course-card:nth-child(7), .student-card:nth-child(7), .session-card:nth-child(7) { animation-delay: 0.33s; }
+      .course-card:nth-child(8), .student-card:nth-child(8), .session-card:nth-child(8) { animation-delay: 0.38s; }
+      .course-card:nth-child(9), .student-card:nth-child(9), .session-card:nth-child(9) { animation-delay: 0.43s; }
+      .course-card:nth-child(10), .student-card:nth-child(10), .session-card:nth-child(10) { animation-delay: 0.48s; }
+      @keyframes cardSlideUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+      }
 
-        {% block extra_css %}{% endblock %}
+      /* ── Preloader ── */
+      #preloader {
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: #0d1117; display: flex; flex-direction: column;
+          align-items: center; justify-content: center; z-index: 9999;
+          opacity: 1; visibility: visible;
+          transition: opacity 0.3s ease, visibility 0.3s;
+      }
+      #preloader.hidden { opacity: 0; visibility: hidden; }
+      .preloader-logo {
+          font-size: 48px; margin-bottom: 20px;
+          animation: pulse 1.5s infinite;
+      }
+      .preloader-text {
+          font-size: 20px; font-weight: 700; color: var(--blue);
+          letter-spacing: 0.1em; margin-bottom: 20px;
+      }
+      .preloader-spinner {
+          width: 40px; height: 40px;
+          border: 4px solid rgba(255,255,255,0.1);
+          border-top-color: var(--blue); border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes pulse {
+          0% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1); opacity: 0.8; }
+      }
+
+      /* AJAX Spinner */
+      .ajax-spinner {
+          display: flex; flex-direction: column; align-items: center;
+          justify-content: center; padding: 30px; color: var(--muted); gap: 12px;
+      }
+      .ajax-spinner .mini-spinner {
+          width: 28px; height: 28px;
+          border: 3px solid rgba(255,255,255,0.1);
+          border-top-color: var(--blue); border-radius: 50%;
+          animation: spin 0.6s linear infinite;
+      }
+
+      /* Toast */
+      .toast {
+          position: fixed;
+          top: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          padding: 14px 20px;
+          border-radius: 12px;
+          background: var(--glass);
+          backdrop-filter: blur(10px);
+          border: 1px solid var(--border);
+          color: var(--text);
+          z-index: 3000;
+          animation: toastIn 0.25s ease, toastOut 0.25s ease 3s forwards;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+          max-width: 90vw;
+          text-align: center;
+      }
+      .toast.success { border-color: rgba(46,213,115,0.35); }
+      .toast.error { border-color: rgba(233,69,96,0.35); }
+      @keyframes toastIn {
+          from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+      }
+      @keyframes toastOut {
+          to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+      }
+
+      /* Skeleton */
+      .skeleton {
+          background: linear-gradient(90deg, var(--glass) 25%, rgba(255,255,255,0.08) 50%, var(--glass) 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.2s infinite;
+          border-radius: 12px;
+      }
+      .skeleton-card { height: 80px; margin-bottom: 10px; }
+      @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+      }
+
+      /* ── Corner Glows (pulse + ripple) — stronger + enabled ripple on content ── */
+      body::before, body::after {
+          content: '';
+          position: fixed;
+          width: 360px;
+          height: 360px;
+          border-radius: 50%;
+          filter: blur(56px);
+          pointer-events: none;
+          z-index: 0;
+          animation: glowPulse 5.5s ease-in-out infinite, glowRipple 9s linear infinite;
+          will-change: transform, opacity;
+      }
+
+      body::before {
+          top: -140px;
+          left: -140px;
+          background: radial-gradient(circle, rgba(233,69,96,0.45) 0%, transparent 68%);
+          animation-delay: 0s, 0s;
+      }
+
+      body::after {
+          right: -140px;
+          bottom: -140px;
+          background: radial-gradient(circle, rgba(0,180,216,0.42) 0%, transparent 68%);
+          animation-delay: -3s, 2s;
+      }
+
+      /* ── Keyframes ── */
+      /* Breathing pulse */
+      @keyframes glowPulse {
+          0%, 100% { transform: scale(1); opacity: 0.85; }
+          50%      { transform: scale(1.25); opacity: 1; }
+      }
+
+      /* Slow drift + ripple */
+      @keyframes glowRipple {
+          0%   { transform: translate(0, 0) scale(1); }
+          25%  { transform: translate(-18px, 14px) scale(1.06); }
+          50%  { transform: translate(14px, -12px) scale(0.96); }
+          75%  { transform: translate(8px, 18px) scale(1.03); }
+          100% { transform: translate(0, 0) scale(1); }
+      }
+
+      /* Mobile: reduce blur slightly and adjust durations for lower-end devices */
+      @media (max-width: 768px) {
+          body::before, body::after {
+              filter: blur(44px);
+              animation-duration: 6s, 10s;
+          }
+      }
+
+      /* Enable ripple behind main content by default */
+      .main-content { position: relative; z-index: 1; }
+      .main-content::before {
+          content: '';
+          position: absolute;
+          inset: -48px;
+          border-radius: 20px;
+          background: radial-gradient(circle at 50% 50%, rgba(233,69,96,0.09), rgba(0,180,216,0.06) 48%, transparent 68%);
+          animation: ripple 4.5s ease-in-out infinite;
+          pointer-events: none;
+          z-index: 0;
+          will-change: transform, opacity;
+          filter: blur(14px);
+      }
+
+      @keyframes ripple {
+          0%   { transform: scale(0.85); opacity: 0.5; }
+          50%  { transform: scale(1.18); opacity: 0.16; }
+          100% { transform: scale(0.85); opacity: 0.5; }
+      }
+
+      {% block extra_css %}{% endblock %}
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Preloader (always visible on page load) -->
     <div id="preloader">
-        <div class="preloader-logo">🎓</div>
-        <div class="preloader-text">Smart Attendance</div>
-        <div class="preloader-spinner"></div>
+      <div class="preloader-logo">🎓</div>
+      <div class="preloader-text">Smart Attendance</div>
+      <div class="preloader-spinner"></div>
     </div>
 
     <script>
-        // Ensure preloader is shown for at least 1.2 seconds (even on fast loads)
-        var minShowTime = 1200;
-        var startTime = Date.now();
+      // Ensure preloader is shown for at least 1.2 seconds (even on fast loads)
+      var minShowTime = 1200;
+      var startTime = Date.now();
 
-        function hidePreloader() {
-            var elapsed = Date.now() - startTime;
-            var delay = Math.max(0, minShowTime - elapsed);
-            setTimeout(function() {
-                var preloader = document.getElementById('preloader');
-                if (preloader) {
-                    preloader.classList.add('hidden');
-                    setTimeout(function() {
-                        if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
-                    }, 400);
-                }
-            }, delay);
+      function hidePreloader() {
+        var elapsed = Date.now() - startTime;
+        var delay = Math.max(0, minShowTime - elapsed);
+        setTimeout(function () {
+          var preloader = document.getElementById("preloader");
+          if (preloader) {
+            preloader.classList.add("hidden");
+            setTimeout(function () {
+              if (preloader.parentNode)
+                preloader.parentNode.removeChild(preloader);
+            }, 400);
+          }
+        }, delay);
+      }
+
+      // Hide after window load (if not already hidden)
+      window.addEventListener("load", function () {
+        hidePreloader();
+      });
+
+      // Fallback: hide after 5 seconds in case of slow loads
+      setTimeout(function () {
+        var preloader = document.getElementById("preloader");
+        if (preloader && !preloader.classList.contains("hidden")) {
+          hidePreloader();
         }
+      }, 5000);
 
-        // Hide after window load (if not already hidden)
-        window.addEventListener('load', function() {
-            hidePreloader();
-        });
+      function showToast(message, type) {
+        var toast = document.createElement("div");
+        toast.className = "toast " + (type || "success");
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(function () {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 3500);
+      }
 
-        // Fallback: hide after 5 seconds in case of slow loads
-        setTimeout(function() {
-            var preloader = document.getElementById('preloader');
-            if (preloader && !preloader.classList.contains('hidden')) {
-                hidePreloader();
+      // Replace blocking browser alerts with toast
+      window.alert = function (message) {
+        showToast(String(message || ""), "error");
+      };
+
+      function showSkeleton(containerId, count) {
+        var el = document.getElementById(containerId);
+        if (!el) return;
+        var n = count || 2;
+        var html = "";
+        for (var i = 0; i < n; i++) {
+          html += '<div class="skeleton skeleton-card"></div>';
+        }
+        el.innerHTML = html;
+      }
+
+      function animateStatNumbers(scopeSelector) {
+        var root = scopeSelector
+          ? document.querySelector(scopeSelector)
+          : document;
+        if (!root) return;
+        root.querySelectorAll(".stat-card h3").forEach(function (el) {
+          var target = parseInt(el.textContent, 10);
+          if (isNaN(target)) return;
+          var current = 0;
+          var duration = 400;
+          var step = Math.ceil(target / (duration / 16));
+          var timer = setInterval(function () {
+            current += step;
+            if (current >= target) {
+              current = target;
+              clearInterval(timer);
             }
-        }, 5000);
+            el.textContent = current;
+          }, 16);
+        });
+      }
 
-        // AJAX helper
-        function showLoader(containerId) {
-            var el = document.getElementById(containerId);
-            if (!el) return;
-            el.innerHTML = '<div class="ajax-spinner"><div class="mini-spinner"></div><span>Loading...</span></div>';
-        }
+      // AJAX helper
+      function showLoader(containerId) {
+        var el = document.getElementById(containerId);
+        if (!el) return;
+        showSkeleton(containerId, 2);
+      }
     </script>
 
     <!-- Rest of the page content -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-brand">🎓 Smart Attendance</div>
-        <ul class="sidebar-nav">
-            {% if session.student_id %}
-                <li><a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">📊 Dashboard</a></li>
-                <li><a href="/my_courses" class="{% if request.path == '/my_courses' %}active{% endif %}">📚 My Courses</a></li>
-                <li><a href="/mark_attendance" class="{% if request.path == '/mark_attendance' %}active{% endif %}">✏️ Mark Attendance</a></li>
-                <li><a href="/change_password">🔒 Change Password</a></li>
-                <li><a href="/logout">🚪 Logout</a></li>
-            {% elif session.lecturer_id %}
-                <li><a href="/lecturer/dashboard" class="{% if request.path == '/lecturer/dashboard' %}active{% endif %}">🎯 Session Control</a></li>
-                <li><a href="/lecturer/courses" class="{% if request.path == '/lecturer/courses' %}active{% endif %}">📚 My Courses</a></li>
-                <li><a href="/lecturer/students" class="{% if request.path == '/lecturer/students' %}active{% endif %}">👥 Students</a></li>
-                <li><a href="/lecturer/records" class="{% if request.path == '/lecturer/records' %}active{% endif %}">📋 Attendance Records</a></li>
-                <li><a href="/lecturer/change_password">🔒 Change Password</a></li>
-                <li><a href="/lecturer/logout">🚪 Logout</a></li>
-            {% elif session.admin_id %}
-                <li><a href="/admin/dashboard" class="{% if request.path == '/admin/dashboard' %}active{% endif %}">⚙️ Admin</a></li>
-                <li><a href="/admin/logout">🚪 Logout</a></li>
-            {% else %}
-                <li><a href="/login">🔑 Login</a></li>
-                <li><a href="/register">📝 Register</a></li>
-                <li><a href="/lecturer/login">👨‍🏫 Lecturer Login</a></li>
-            {% endif %}
-        </ul>
+      <div class="sidebar-brand">🎓 Smart Attendance</div>
+      <ul class="sidebar-nav">
+        {% if session.student_id %}
+        <li>
+          <a
+            href="/dashboard"
+            class="{% if request.path == '/dashboard' %}active{% endif %}"
+            >📊 Dashboard</a
+          >
+        </li>
+        <li>
+          <a
+            href="/my_courses"
+            class="{% if request.path == '/my_courses' %}active{% endif %}"
+            >📚 My Courses</a
+          >
+        </li>
+        <li>
+          <a
+            href="/mark_attendance"
+            class="{% if request.path == '/mark_attendance' %}active{% endif %}"
+            >✏️ Mark Attendance</a
+          >
+        </li>
+        <li><a href="/change_password">🔒 Change Password</a></li>
+        <li><a href="/logout">🚪 Logout</a></li>
+        {% elif session.lecturer_id %}
+        <li>
+          <a
+            href="/lecturer/dashboard"
+            class="{% if request.path == '/lecturer/dashboard' %}active{% endif %}"
+            >🎯 Session Control</a
+          >
+        </li>
+        <li>
+          <a
+            href="/lecturer/courses"
+            class="{% if request.path == '/lecturer/courses' %}active{% endif %}"
+            >📚 My Courses</a
+          >
+        </li>
+        <li>
+          <a
+            href="/lecturer/students"
+            class="{% if request.path == '/lecturer/students' %}active{% endif %}"
+            >👥 Students</a
+          >
+        </li>
+        <li>
+          <a
+            href="/lecturer/records"
+            class="{% if request.path == '/lecturer/records' %}active{% endif %}"
+            >📋 Attendance Records</a
+          >
+        </li>
+        <li><a href="/lecturer/change_password">🔒 Change Password</a></li>
+        <li><a href="/lecturer/logout">🚪 Logout</a></li>
+        {% elif session.admin_id %}
+        <li>
+          <a
+            href="/admin/dashboard"
+            class="{% if request.path == '/admin/dashboard' %}active{% endif %}"
+            >⚙️ Admin</a
+          >
+        </li>
+        <li><a href="/admin/logout">🚪 Logout</a></li>
+        {% else %}
+        <li><a href="/login">🔑 Login</a></li>
+        <li><a href="/register">📝 Register</a></li>
+        <li><a href="/lecturer/login">👨‍🏫 Lecturer Login</a></li>
+        {% endif %}
+      </ul>
     </div>
 
     <div class="mobile-navbar">
-        <button class="menu-toggle" id="menuToggle">☰</button>
-        <h1>Smart Attendance</h1>
-        <div class="nav-right">
-            {% if session.student_id %}
-                <a href="/dashboard">🏠</a>
-            {% elif session.lecturer_id %}
-                <a href="/lecturer/dashboard">🏠</a>
-            {% elif session.admin_id %}
-                <a href="/admin/dashboard">🏠</a>
-            {% else %}
-                <a href="/">🏠</a>
-            {% endif %}
-        </div>
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <h1>Smart Attendance</h1>
+      <div class="nav-right">
+        {% if session.student_id %}
+        <a href="/dashboard">🏠</a>
+        {% elif session.lecturer_id %}
+        <a href="/lecturer/dashboard">🏠</a>
+        {% elif session.admin_id %}
+        <a href="/admin/dashboard">🏠</a>
+        {% else %}
+        <a href="/">🏠</a>
+        {% endif %}
+      </div>
     </div>
 
-    <div class="main-content">
-        {% block content %}{% endblock %}
-    </div>
+    <div class="main-content">{% block content %}{% endblock %}</div>
 
     <script>
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        const toggleBtn = document.getElementById('menuToggle');
-        function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('active'); document.body.style.overflow = 'hidden'; }
-        function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('active'); document.body.style.overflow = ''; }
-        if (toggleBtn) { toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); if (sidebar.classList.contains('open')) closeSidebar(); else openSidebar(); }); }
-        overlay.addEventListener('click', closeSidebar);
-        document.querySelectorAll('.sidebar-nav a').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth < 768) closeSidebar(); }); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar(); });
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("sidebarOverlay");
+      const toggleBtn = document.getElementById("menuToggle");
+      function openSidebar() {
+        sidebar.classList.add("open");
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+      function closeSidebar() {
+        sidebar.classList.remove("open");
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (sidebar.classList.contains("open")) closeSidebar();
+          else openSidebar();
+        });
+      }
+      overlay.addEventListener("click", closeSidebar);
+      document.querySelectorAll(".sidebar-nav a").forEach((link) => {
+        link.addEventListener("click", () => {
+          if (window.innerWidth < 768) closeSidebar();
+        });
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && sidebar.classList.contains("open"))
+          closeSidebar();
+      });
     </script>
     {% block extra_js %}{% endblock %}
-</body>
+  </body>
 </html>

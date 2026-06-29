@@ -1,0 +1,11 @@
+{
+  "name": "glow-demo-screenshot",
+  "version": "1.0.0",
+  "description": "Helper to capture screenshot of glow_demo.html using puppeteer",
+  "scripts": {
+    "screenshot": "node screenshot.js"
+  },
+  "dependencies": {
+    "puppeteer": "^20.0.0"
+  }
+}
