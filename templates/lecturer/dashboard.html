@@ -2,10 +2,32 @@
 {% block title %}Lecturer Dashboard – Session Control{% endblock %}
 {% block content %}
 <style>
-    #particle-network-dashboard { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.28; }
-    .container { max-width: 900px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+    /* ─── All dashboard-specific styles ─── */
+    /* These are already scoped inside the dashboard content block,
+       but we add a safe margin and ensure no overflow from the container. */
 
-    /* ── Greeting ── */
+    .container {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        padding: 20px 16px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .section-card,
+    .welcome,
+    .pattern-grid,
+    .stats-grid,
+    .session-info-box,
+    .dept-checklist {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box;
+    }
+
+    /* ── Welcome ── */
     .welcome {
         background: linear-gradient(135deg, rgba(0,180,216,0.12), rgba(0,180,216,0.03));
         border: 1px solid rgba(0,180,216,0.2);
@@ -17,31 +39,54 @@
     .welcome:hover { box-shadow: 0 0 20px rgba(0,180,216,0.1); }
     .welcome h2 { font-size: 22px; font-weight: 700; }
     .welcome-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .meta-tag { background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; padding: 4px 12px; font-size: 12px; color: var(--muted); }
+    .meta-tag { background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; padding: 4px 12px; font-size: 12px; color: var(--muted); word-break: break-word; }
     .meta-tag strong { color: var(--text); }
 
     /* ── Stats cards ── */
-    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
-    @media (min-width: 640px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    .stats-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 24px; }
+    @media (min-width: 640px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1024px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
     .stat-card { background: var(--glass); border: 1px solid var(--border); border-radius: 14px; padding: 18px 12px; text-align: center; transition: transform 0.2s, box-shadow 0.3s; }
     .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
     .stat-card h3 { font-size: 28px; font-weight: 700; color: var(--blue); }
     .stat-card p { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
-    /* ── Session control ── */
+    /* ── Section cards ── */
     .section-card { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 24px; transition: box-shadow 0.3s; }
     .section-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
     .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--blue); }
 
-    .pattern-grid { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
-    .pattern-btn { flex: 1; min-width: 70px; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; color: var(--muted); font-weight: 600; cursor: pointer; transition: background 0.3s, border-color 0.3s, transform 0.2s; }
+    /* ── Pattern grid (mobile‑friendly) ── */
+    .pattern-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)) !important;
+        gap: 10px !important;
+        margin: 16px 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+    .pattern-btn {
+        width: 100% !important;
+        padding: 10px 4px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--muted);
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s, border-color 0.3s, transform 0.2s;
+        text-align: center;
+        font-size: 13px;
+        box-sizing: border-box;
+        word-break: break-word;
+    }
     .pattern-btn:hover { transform: translateY(-2px); border-color: var(--blue); }
     .pattern-btn.active { background: var(--blue); color: white; border-color: var(--blue); transform: scale(1.05); }
 
-    .location-box { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; margin: 12px 0; font-size: 13px; transition: background 0.3s; }
+    .location-box { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; margin: 12px 0; font-size: 13px; transition: background 0.3s; word-break: break-word; }
     .location-box:hover { background: rgba(255,255,255,0.06); }
 
-    .btn { padding: 12px 16px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; transition: transform 0.1s, box-shadow 0.3s, opacity 0.3s; will-change: transform; }
+    .btn { padding: 12px 16px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; transition: transform 0.1s, box-shadow 0.3s, opacity 0.3s; will-change: transform; box-sizing: border-box; }
     .btn:active { transform: scale(0.98); }
     .btn:hover { opacity: 0.9; }
     .btn-primary { background: var(--blue); color: white; }
@@ -54,35 +99,117 @@
     .alert.success { background: rgba(46,213,115,0.1); color: var(--green); }
     .alert.error { background: rgba(233,69,96,0.1); color: var(--red); }
 
-    .session-info-box { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-size: 13px; line-height: 2; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    .session-info-box {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        font-size: 13px;
+        line-height: 2;
+        transition: background 0.3s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
     .session-info-box:hover { background: rgba(255,255,255,0.06); }
     .session-info-box strong { color: var(--text); }
+    .session-info-box .btn { width: auto; margin: 0; }
+
     .empty { text-align: center; padding: 36px 20px; color: var(--muted); font-size: 13px; }
 
-    /* Dropdown readability */
-    select { width: 100%; padding: 12px; background: rgba(255,255,255,0.06); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-family: inherit; font-size: 15px; outline: none; transition: border-color 0.3s; margin-bottom: 14px; }
+    /* ── Mobile overrides ── */
+    @media (max-width: 768px) {
+      .container { padding: 16px 12px; }
+      .pattern-grid {
+          grid-template-columns: repeat(2, 1fr) !important;
+      }
+      .pattern-btn { width: 100%; }
+      .session-info-box {
+          flex-direction: column !important;
+          align-items: stretch !important;
+      }
+      .session-info-box .btn {
+          width: 100% !important;
+      }
+      .dept-checklist { max-height: 260px; }
+    }
+
+    /* ── Other elements ── */
+    select {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255,255,255,0.06);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 15px;
+        outline: none;
+        transition: border-color 0.3s;
+        margin-bottom: 14px;
+        box-sizing: border-box;
+    }
     select:focus { border-color: var(--blue); }
     select option { background: #0d1117; color: #f0f6fc; }
 
-    /* Checkbox list */
-    .dept-checklist { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid var(--border); max-height: 200px; overflow-y: auto; }
-    .dept-checklist label { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text); cursor: pointer; padding: 4px 0; transition: color 0.2s; }
+    .dept-checklist {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 12px 0;
+        padding: 12px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        max-height: 200px;
+        overflow-y: auto;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+    .dept-checklist label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: var(--text);
+        cursor: pointer;
+        padding: 4px 0;
+        transition: color 0.2s;
+        word-break: break-word;
+    }
     .dept-checklist label:hover { color: var(--blue); }
-    .dept-checklist input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--blue); }
+    .dept-checklist input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--blue); flex-shrink: 0; }
     .select-all-row { font-weight: 600; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px; }
 
-    /* Live feed */
     .student-feed { max-height: 200px; overflow-y: auto; margin-top: 10px; }
-    .student-feed-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; }
+    .student-feed-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; flex-wrap: wrap; gap: 4px; }
     .student-feed-item.just-arrived { animation: feedPulse 2s ease; }
     .badge.present { background: rgba(46,213,115,0.15); color: var(--green); padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
     @keyframes feedPulse {
         0% { background: rgba(46,213,115,0.2); }
         100% { background: transparent; }
     }
+
+    .help-text {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: -8px;
+        margin-bottom: 12px;
+    }
+
+    /* ─── Additional safety: dashboard-specific overflow overrides ─── */
+    /* This ensures even if base.html misses something, this page is safe */
+    .main-content {
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+    }
 </style>
 
-<canvas id="particle-network-dashboard"></canvas>
 <div class="container">
     <!-- Greeting -->
     <div class="welcome">
@@ -119,7 +246,7 @@
         <div id="deptSelectionArea" style="display:none;">
             <label>Select eligible departments:</label>
             <div id="deptChecklistContainer" class="dept-checklist"></div>
-            <span class="help-text" style="display:block; color:var(--muted); font-size:12px; margin-top:-8px;">Choose one or more departments whose students will attend this session.</span>
+            <span class="help-text">Choose one or more departments whose students will attend this session.</span>
         </div>
 
         <div class="pattern-grid">
@@ -145,7 +272,7 @@
                 <div>Pattern: <strong id="livePattern"></strong></div>
                 <div>Attendance: <strong><span id="livePresentCount">0</span> / <span id="liveTotalCount">0</span></strong></div>
             </div>
-            <button class="btn btn-danger" style="width:auto; padding:8px 16px; margin:0;" onclick="stopActiveSession()">⏹️ Stop This Session</button>
+            <button class="btn btn-danger" onclick="stopActiveSession()">⏹️ Stop This Session</button>
         </div>
         <div class="student-feed" id="liveStudentFeed">
             <div class="empty" style="padding:10px;">Waiting for students...</div>
@@ -154,6 +281,7 @@
 </div>
 
 <script>
+    // ─── All JavaScript remains the same – the CSS fix handles overflow ───
     let selectedPattern = 'circle';
     let lecturerLat = null, lecturerLng = null;
     let activeSessionId = null;
@@ -169,7 +297,6 @@
         });
     });
 
-    // Load departments (checkboxes)
     async function loadCourseDepartments() {
         const courseId = document.getElementById('sessionCourseSelect').value;
         const deptArea = document.getElementById('deptSelectionArea');
@@ -192,10 +319,7 @@
     function toggleAllDepts(cb) { document.querySelectorAll('.dept-checkbox').forEach(c => c.checked = cb.checked); }
     function getSelectedDepartments() { return Array.from(document.querySelectorAll('.dept-checkbox:checked')).map(c => parseInt(c.value)); }
 
-    // ---------- Location handling ----------
     const locBox = document.getElementById('locationBox');
-
-    // Manual capture (high accuracy)
     document.getElementById('captureLocationBtn').addEventListener('click', () => {
         locBox.textContent = '📍 Capturing precise location...';
         tryGeo(true, (lat, lng, accuracy) => {
@@ -204,7 +328,6 @@
             locBox.textContent = `📍 Location: (${lat.toFixed(5)}, ${lng.toFixed(5)}) ±${Math.round(accuracy)}m`;
             showAlert('sessionAlert', 'Precise location captured!', 'success');
         }, () => {
-            // If high accuracy fails completely, keep whatever we had from auto-detect
             if (lecturerLat && lecturerLng) {
                 locBox.textContent = `📍 Using auto-detected location (accuracy may be lower).`;
                 showAlert('sessionAlert', 'Could not get high accuracy, using current location.', 'error');
@@ -214,7 +337,6 @@
         });
     });
 
-    // Generic geolocation helper
     function tryGeo(highAccuracy, successCallback, errorCallback) {
         if (!navigator.geolocation) {
             locBox.textContent = '❌ Geolocation not supported by this browser.';
@@ -232,7 +354,6 @@
                         attempt(false, true);
                         return;
                     }
-                    // On any persistent error, call errorCallback
                     if (errorCallback) errorCallback(err);
                 },
                 { enableHighAccuracy: highAcc, timeout: 15000, maximumAge: 0 }
@@ -241,7 +362,6 @@
         attempt(highAccuracy, false);
     }
 
-    // Auto-detect location on page load (low accuracy, silent)
     function autoDetectLocation() {
         tryGeo(false, (lat, lng) => {
             lecturerLat = lat;
@@ -252,7 +372,6 @@
         });
     }
 
-    // ---------- Session start / stop ----------
     document.getElementById('startSessionBtn').addEventListener('click', async () => {
         if (!lecturerLat || !lecturerLng) { showAlert('sessionAlert','Please wait for location or capture it manually first.','error'); return; }
         const courseId = document.getElementById('sessionCourseSelect').value;
@@ -287,7 +406,6 @@
         }
     });
 
-    // Stop session (from card button)
     async function stopActiveSession() {
         if (!activeSessionId) return;
         await stopSession();
@@ -312,7 +430,6 @@
         }
     }
 
-    // Mark absent
     document.getElementById('markAbsentBtn').addEventListener('click', async () => {
         if (!activeSessionId) { showAlert('sessionAlert','No active session to mark absent','error'); return; }
         if (!confirm('Mark all students who haven\'t marked as ABSENT and notify parents?')) return;
@@ -323,14 +440,12 @@
         });
         const data = await res.json();
         showAlert('sessionAlert', data.message, data.success ? 'success' : 'error');
-        // Mark absent stops the session
         activeSessionId = null;
         stopLiveUpdates();
         document.getElementById('activeSessionBanner').style.display = 'none';
         document.getElementById('liveSessionCard').style.display = 'none';
     });
 
-    // Live updates
     function startLiveUpdates(sessionId) {
         stopLiveUpdates();
         liveInterval = setInterval(() => fetchSessionStatus(sessionId), 3000);
@@ -378,7 +493,6 @@
         }
     }
 
-    // Check existing active session on load
     async function checkActiveSession() {
         try {
             const res = await fetch('/lecturer/active_session');
@@ -404,7 +518,6 @@
         }
     }
 
-    // Alert helper
     function showAlert(id, msg, type) {
         const el = document.getElementById(id);
         el.textContent = msg;
@@ -417,72 +530,5 @@
     autoDetectLocation();
     checkActiveSession();
     animateStatNumbers();
-
-    // Lightweight particle network backdrop (mobile-optimized)
-    (function() {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        const canvas = document.getElementById('particle-network-dashboard');
-        const ctx = canvas.getContext('2d');
-        const particles = [];
-        const isMobile = window.innerWidth <= 768;
-        const count = isMobile ? 20 : 32;
-        const linkDistance = isMobile ? 86 : 110;
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-
-        function init() {
-            particles.length = 0;
-            for (let i = 0; i < count; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    vx: (Math.random() - 0.5) * 0.28,
-                    vy: (Math.random() - 0.5) * 0.28
-                });
-            }
-        }
-
-        function tick() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < particles.length; i++) {
-                const p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 1.4, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(0,180,216,0.55)';
-                ctx.fill();
-
-                for (let j = i + 1; j < particles.length; j++) {
-                    const q = particles[j];
-                    const dist = Math.hypot(p.x - q.x, p.y - q.y);
-                    if (dist < linkDistance) {
-                        const alpha = (1 - dist / linkDistance) * 0.20;
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(q.x, q.y);
-                        ctx.strokeStyle = `rgba(0,180,216,${alpha})`;
-                        ctx.lineWidth = 1;
-                        ctx.stroke();
-                    }
-                }
-            }
-            requestAnimationFrame(tick);
-        }
-
-        resize();
-        init();
-        tick();
-        window.addEventListener('resize', () => {
-            resize();
-            init();
-        });
-    })();
 </script>
 {% endblock %}

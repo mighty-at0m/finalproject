@@ -22,21 +22,60 @@
           --text: #f0f6fc;
           --muted: rgba(240,246,252,0.5);
       }
-      * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; min-width: 0; }
+
+      /* ─── MASTER OVERFLOW CONTROL ─── */
+      html, body {
+          overflow-x: hidden !important;
+          max-width: 100% !important;
+          width: 100% !important;
+          overscroll-behavior-x: none !important;
+      }
+
       body {
           font-family: 'Space Grotesk', sans-serif;
           background: var(--bg1);
           color: var(--text);
           min-height: 100vh;
-          overflow-x: hidden;
+          animation: none !important;
+          /* allow the safe canvas to sit behind */
+          position: relative;
       }
-      /* Sidebar */
+
+      /* Remove any leftover decorative pseudo‑elements that could bleed */
+      body::before, body::after,
+      .main-content::before, .main-content::after {
+          display: none !important;
+          animation: none !important;
+      }
+
+      .main-content {
+          overflow-x: hidden !important;
+          max-width: 100% !important;
+          width: 100% !important;
+          position: relative;
+          z-index: 1;  /* content sits above the canvas */
+      }
+
+      /* All containers stay within bounds */
+      .container, .section-card, .welcome,
+      .pattern-grid, .stats-grid,
+      .session-info-box, .dept-checklist,
+      .mobile-navbar, .sidebar, .sidebar-overlay {
+          max-width: 100% !important;
+          overflow-x: hidden !important;
+          box-sizing: border-box !important;
+      }
+
+      /* ─── Sidebar ─── */
       .sidebar {
           position: fixed; top: 0; left: 0; width: 280px; height: 100%;
           background: rgba(13, 17, 23, 0.98); backdrop-filter: blur(12px);
           border-right: 1px solid var(--border); padding: 24px 16px;
           transform: translateX(-100%); transition: transform 0.3s ease-in-out;
           z-index: 1000; overflow-y: auto;
+          box-sizing: border-box;
+          max-width: 100vw;
       }
       .sidebar.open { transform: translateX(0); }
       .sidebar-brand { font-size: 18px; font-weight: 700; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
@@ -47,11 +86,13 @@
           color: var(--muted); text-decoration: none; transition: all 0.2s; font-size: 15px;
       }
       .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--glass); color: var(--red); }
+
       .mobile-navbar {
-          position: sticky; top: 0; z-index: 100;
+          position: sticky; top: 0; left: 0; right: 0; width: 100%; z-index: 100;
           background: rgba(13, 17, 23, 0.95); backdrop-filter: blur(20px);
           border-bottom: 1px solid var(--border); padding: 12px 16px;
           display: flex; align-items: center; gap: 12px;
+          box-sizing: border-box;
       }
       .menu-toggle {
           background: var(--glass); border: 1px solid var(--border); border-radius: 8px;
@@ -69,12 +110,7 @@
           background: rgba(0,0,0,0.6); z-index: 999; display: none;
       }
       .sidebar-overlay.active { display: block; }
-      .main-content {
-          width: 100%;
-          min-height: 100vh;
-          padding-bottom: 60px;
-          animation: pageIn 0.25s ease both;
-      }
+
       @keyframes pageIn {
           from { opacity: 0; transform: translateY(6px); }
           to { opacity: 1; transform: translateY(0); }
@@ -85,35 +121,7 @@
           .main-content { margin-left: 260px; width: calc(100% - 260px); }
           .sidebar-overlay { display: none !important; }
       }
-      .container { padding: 20px 16px; max-width: 1200px; margin: 0 auto; }
-
-      /* Mobile touch feedback */
-      .btn, .nav-btn, .course-card, .student-card, .session-card, .stat-card {
-          transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
-          will-change: transform;
-      }
-      .btn:active, .nav-btn:active, .course-card:active, .student-card:active, .session-card:active, .stat-card:active {
-          transform: scale(0.96);
-      }
-
-      /* Staggered entrance for cards */
-      .course-card, .student-card, .session-card {
-          animation: cardSlideUp 0.45s ease both;
-      }
-      .course-card:nth-child(1), .student-card:nth-child(1), .session-card:nth-child(1) { animation-delay: 0.03s; }
-      .course-card:nth-child(2), .student-card:nth-child(2), .session-card:nth-child(2) { animation-delay: 0.08s; }
-      .course-card:nth-child(3), .student-card:nth-child(3), .session-card:nth-child(3) { animation-delay: 0.13s; }
-      .course-card:nth-child(4), .student-card:nth-child(4), .session-card:nth-child(4) { animation-delay: 0.18s; }
-      .course-card:nth-child(5), .student-card:nth-child(5), .session-card:nth-child(5) { animation-delay: 0.23s; }
-      .course-card:nth-child(6), .student-card:nth-child(6), .session-card:nth-child(6) { animation-delay: 0.28s; }
-      .course-card:nth-child(7), .student-card:nth-child(7), .session-card:nth-child(7) { animation-delay: 0.33s; }
-      .course-card:nth-child(8), .student-card:nth-child(8), .session-card:nth-child(8) { animation-delay: 0.38s; }
-      .course-card:nth-child(9), .student-card:nth-child(9), .session-card:nth-child(9) { animation-delay: 0.43s; }
-      .course-card:nth-child(10), .student-card:nth-child(10), .session-card:nth-child(10) { animation-delay: 0.48s; }
-      @keyframes cardSlideUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
-      }
+      .container { padding: 20px 16px; max-width: 1200px; margin: 0 auto; overflow-x: hidden; }
 
       /* ── Preloader ── */
       #preloader {
@@ -143,18 +151,6 @@
           0% { transform: scale(1); opacity: 0.8; }
           50% { transform: scale(1.1); opacity: 1; }
           100% { transform: scale(1); opacity: 0.8; }
-      }
-
-      /* AJAX Spinner */
-      .ajax-spinner {
-          display: flex; flex-direction: column; align-items: center;
-          justify-content: center; padding: 30px; color: var(--muted); gap: 12px;
-      }
-      .ajax-spinner .mini-spinner {
-          width: 28px; height: 28px;
-          border: 3px solid rgba(255,255,255,0.1);
-          border-top-color: var(--blue); border-radius: 50%;
-          animation: spin 0.6s linear infinite;
       }
 
       /* Toast */
@@ -198,84 +194,11 @@
           100% { background-position: -200% 0; }
       }
 
-      /* ── Corner Glows (pulse + ripple) — stronger + enabled ripple on content ── */
-      body::before, body::after {
-          content: '';
-          position: fixed;
-          width: 360px;
-          height: 360px;
-          border-radius: 50%;
-          filter: blur(56px);
-          pointer-events: none;
-          z-index: 0;
-          animation: glowPulse 5.5s ease-in-out infinite, glowRipple 9s linear infinite;
-          will-change: transform, opacity;
-      }
-
-      body::before {
-          top: -140px;
-          left: -140px;
-          background: radial-gradient(circle, rgba(233,69,96,0.45) 0%, transparent 68%);
-          animation-delay: 0s, 0s;
-      }
-
-      body::after {
-          right: -140px;
-          bottom: -140px;
-          background: radial-gradient(circle, rgba(0,180,216,0.42) 0%, transparent 68%);
-          animation-delay: -3s, 2s;
-      }
-
-      /* ── Keyframes ── */
-      /* Breathing pulse */
-      @keyframes glowPulse {
-          0%, 100% { transform: scale(1); opacity: 0.85; }
-          50%      { transform: scale(1.25); opacity: 1; }
-      }
-
-      /* Slow drift + ripple */
-      @keyframes glowRipple {
-          0%   { transform: translate(0, 0) scale(1); }
-          25%  { transform: translate(-18px, 14px) scale(1.06); }
-          50%  { transform: translate(14px, -12px) scale(0.96); }
-          75%  { transform: translate(8px, 18px) scale(1.03); }
-          100% { transform: translate(0, 0) scale(1); }
-      }
-
-      /* Mobile: reduce blur slightly and adjust durations for lower-end devices */
-      @media (max-width: 768px) {
-          body::before, body::after {
-              filter: blur(44px);
-              animation-duration: 6s, 10s;
-          }
-      }
-
-      /* Enable ripple behind main content by default */
-      .main-content { position: relative; z-index: 1; }
-      .main-content::before {
-          content: '';
-          position: absolute;
-          inset: -48px;
-          border-radius: 20px;
-          background: radial-gradient(circle at 50% 50%, rgba(233,69,96,0.09), rgba(0,180,216,0.06) 48%, transparent 68%);
-          animation: ripple 4.5s ease-in-out infinite;
-          pointer-events: none;
-          z-index: 0;
-          will-change: transform, opacity;
-          filter: blur(14px);
-      }
-
-      @keyframes ripple {
-          0%   { transform: scale(0.85); opacity: 0.5; }
-          50%  { transform: scale(1.18); opacity: 0.16; }
-          100% { transform: scale(0.85); opacity: 0.5; }
-      }
-
       {% block extra_css %}{% endblock %}
     </style>
   </head>
   <body>
-    <!-- Preloader (always visible on page load) -->
+    <!-- Preloader -->
     <div id="preloader">
       <div class="preloader-logo">🎓</div>
       <div class="preloader-text">Smart Attendance</div>
@@ -283,10 +206,9 @@
     </div>
 
     <script>
-      // Ensure preloader is shown for at least 1.2 seconds (even on fast loads)
+      // Preloader logic...
       var minShowTime = 1200;
       var startTime = Date.now();
-
       function hidePreloader() {
         var elapsed = Date.now() - startTime;
         var delay = Math.max(0, minShowTime - elapsed);
@@ -301,13 +223,9 @@
           }
         }, delay);
       }
-
-      // Hide after window load (if not already hidden)
       window.addEventListener("load", function () {
         hidePreloader();
       });
-
-      // Fallback: hide after 5 seconds in case of slow loads
       setTimeout(function () {
         var preloader = document.getElementById("preloader");
         if (preloader && !preloader.classList.contains("hidden")) {
@@ -324,54 +242,12 @@
           if (toast.parentNode) toast.parentNode.removeChild(toast);
         }, 3500);
       }
-
-      // Replace blocking browser alerts with toast
       window.alert = function (message) {
         showToast(String(message || ""), "error");
       };
-
-      function showSkeleton(containerId, count) {
-        var el = document.getElementById(containerId);
-        if (!el) return;
-        var n = count || 2;
-        var html = "";
-        for (var i = 0; i < n; i++) {
-          html += '<div class="skeleton skeleton-card"></div>';
-        }
-        el.innerHTML = html;
-      }
-
-      function animateStatNumbers(scopeSelector) {
-        var root = scopeSelector
-          ? document.querySelector(scopeSelector)
-          : document;
-        if (!root) return;
-        root.querySelectorAll(".stat-card h3").forEach(function (el) {
-          var target = parseInt(el.textContent, 10);
-          if (isNaN(target)) return;
-          var current = 0;
-          var duration = 400;
-          var step = Math.ceil(target / (duration / 16));
-          var timer = setInterval(function () {
-            current += step;
-            if (current >= target) {
-              current = target;
-              clearInterval(timer);
-            }
-            el.textContent = current;
-          }, 16);
-        });
-      }
-
-      // AJAX helper
-      function showLoader(containerId) {
-        var el = document.getElementById(containerId);
-        if (!el) return;
-        showSkeleton(containerId, 2);
-      }
     </script>
 
-    <!-- Rest of the page content -->
+    <!-- Sidebar -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
       <div class="sidebar-brand">🎓 Smart Attendance</div>
@@ -467,6 +343,7 @@
     <div class="main-content">{% block content %}{% endblock %}</div>
 
     <script>
+      // ─── SIDEBAR TOGGLE ───
       const sidebar = document.getElementById("sidebar");
       const overlay = document.getElementById("sidebarOverlay");
       const toggleBtn = document.getElementById("menuToggle");
@@ -497,7 +374,96 @@
         if (e.key === "Escape" && sidebar.classList.contains("open"))
           closeSidebar();
       });
+
+      // ─── SAFE, RESPONSIVE PARTICLE BACKGROUND ───
+      (function safeParticles() {
+        // Skip if user prefers reduced motion
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        const canvas = document.createElement('canvas');
+        canvas.id = 'safe-particles';
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
+        canvas.style.zIndex = '-1';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.display = 'block';
+        // Insert at the start of body so it sits behind everything
+        document.body.prepend(canvas);
+
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        const particles = [];
+        // Responsive count: fewer on smaller screens
+        const count = Math.min(50, Math.floor(window.innerWidth / 20));
+
+        function resize() {
+          w = canvas.width = window.innerWidth;
+          h = canvas.height = window.innerHeight;
+          // Reposition particles to new bounds
+          particles.forEach(p => {
+            p.x = Math.random() * w;
+            p.y = Math.random() * h;
+          });
+        }
+
+        function init() {
+          for (let i = 0; i < count; i++) {
+            particles.push({
+              x: Math.random() * w,
+              y: Math.random() * h,
+              vx: (Math.random() - 0.5) * 0.3,
+              vy: (Math.random() - 0.5) * 0.3,
+              r: 1.5 + Math.random() * 1.5
+            });
+          }
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, w, h);
+          const linkDist = Math.min(120, w * 0.15);
+          for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0 || p.x > w) p.vx *= -1;
+            if (p.y < 0 || p.y > h) p.vy *= -1;
+
+            // Draw dot
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.fill();
+
+            // Draw connections
+            for (let j = i + 1; j < particles.length; j++) {
+              const q = particles[j];
+              const dx = p.x - q.x;
+              const dy = p.y - q.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist < linkDist) {
+                const alpha = (1 - dist / linkDist) * 0.15;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(q.x, q.y);
+                ctx.strokeStyle = `rgba(233,69,96,${alpha})`;
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+              }
+            }
+          }
+          requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        init();
+        draw();
+      })();
     </script>
+
     {% block extra_js %}{% endblock %}
   </body>
 </html>
